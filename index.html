@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tango – Soleils et lunes</title>
+  <meta name="description" content="Tango : remplissez la grille 6×6 avec des soleils et des lunes.">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <header class="entete">
+    <h1 class="entete__titre">Tango</h1>
+    <p class="entete__sous-titre">Soleils et lunes – la grille du jour</p>
+  </header>
+
+  <main class="contenu">
+    <section class="carte" aria-labelledby="titre-grille">
+      <h2 id="titre-grille" class="visuellement-cache">Grille du jour</h2>
+      <div id="grille" class="grille" role="grid" aria-label="Grille de 6 lignes sur 6 colonnes">
+        <!-- Les 36 cases sont créées par assets/js/main.js -->
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <p>Tango – Keewee</p>
+  </footer>
+
+  <script src="assets/js/grille.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

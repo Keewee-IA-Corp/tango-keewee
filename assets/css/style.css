@@ -1,0 +1,184 @@
+/* ==========================================================
+   Tango – Keewee : feuille de style unique
+   ========================================================== */
+
+:root {
+  /* Couleurs */
+  --couleur-fond: #f4f5f7;          /* gris très clair de la page */
+  --couleur-carte: #ffffff;
+  --couleur-texte: #1f2430;
+  --couleur-texte-doux: #555c6b;
+  --couleur-case: #ffffff;
+  --couleur-case-depart: #e3e6eb;   /* gris clair des cases de départ */
+  --couleur-bordure-case: #cfd4dc;
+  --couleur-soleil: #f5a623;
+  --couleur-soleil-contour: #b86e00;
+  --couleur-lune: #2f6fd6;
+  --couleur-lune-contour: #1a428a;
+
+  /* Espacements et formes */
+  --espace-xs: 0.25rem;
+  --espace-s: 0.5rem;
+  --espace-m: 1rem;
+  --espace-l: 1.5rem;
+  --rayon-carte: 1rem;
+  --rayon-case: 0.375rem;
+  --ombre-carte: 0 2px 10px rgba(31, 36, 48, 0.08);
+
+  /* Grille */
+  --largeur-grille-max: 26rem;
+  --ecart-cases: 0.25rem;
+
+  /* Typographie */
+  --police: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--couleur-fond);
+  color: var(--couleur-texte);
+  font-family: var(--police);
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.visuellement-cache {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- En-tête et pied ---------- */
+
+.entete {
+  padding: var(--espace-l) var(--espace-m) var(--espace-s);
+  text-align: center;
+}
+
+.entete__titre {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.2;
+}
+
+.entete__sous-titre {
+  margin: var(--espace-xs) 0 0;
+  color: var(--couleur-texte-doux);
+}
+
+.pied {
+  padding: var(--espace-m);
+  text-align: center;
+  color: var(--couleur-texte-doux);
+  font-size: 0.875rem;
+}
+
+.pied p {
+  margin: 0;
+}
+
+/* ---------- Contenu ---------- */
+
+.contenu {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: var(--espace-m);
+}
+
+.carte {
+  width: 100%;
+  max-width: calc(var(--largeur-grille-max) + 2 * var(--espace-l));
+  padding: var(--espace-m);
+  background: var(--couleur-carte);
+  border-radius: var(--rayon-carte);
+  box-shadow: var(--ombre-carte);
+}
+
+/* ---------- Grille ---------- */
+
+.grille {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ecart-cases);
+  width: 100%;
+  max-width: var(--largeur-grille-max);
+  margin: 0 auto;
+}
+
+.grille__ligne {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--ecart-cases);
+}
+
+.case {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1 / 1;
+  min-width: 0;
+  background: var(--couleur-case);
+  border: 1px solid var(--couleur-bordure-case);
+  border-radius: var(--rayon-case);
+}
+
+.case--depart {
+  background: var(--couleur-case-depart);
+}
+
+.symbole {
+  width: 72%;
+  height: 72%;
+  display: block;
+}
+
+.symbole--soleil circle {
+  fill: var(--couleur-soleil);
+  stroke: var(--couleur-soleil-contour);
+  stroke-width: 1.5;
+}
+
+.symbole--lune path {
+  fill: var(--couleur-lune);
+  stroke: var(--couleur-lune-contour);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+/* ---------- Écrans plus grands ---------- */
+
+@media (min-width: 40rem) {
+  .contenu {
+    padding: var(--espace-l);
+  }
+
+  .carte {
+    padding: var(--espace-l);
+  }
+
+  .entete__titre {
+    font-size: 2.5rem;
+  }
+}
