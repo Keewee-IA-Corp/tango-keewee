@@ -1,5 +1,11 @@
 # Changelog
 
+## TKA-20261126-230511-11 — Afficher le panneau « How to play »
+
+- `index.html` : panneau dépliable « How to play » sous la grille et sa consigne (élément natif `<details>`/`<summary>` : se déplie et se replie au clic, au toucher ou au clavier, état annoncé par les lecteurs d'écran, sans JavaScript). Il rappelle les règles : trois soleils et trois lunes par ligne et colonne, pas plus de deux symboles identiques côte à côte, signification des signes « = » et « × ». Replié par défaut.
+- `assets/css/style.css` : style du panneau (titre en gras avec chevron qui pivote selon l'état, survol, contour de focus clavier, signes « = » et « × » en pastille comme sur la grille), réutilisant les variables existantes.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-8 — Garantir une solution unique et une logique résoluble
 
 - Nouveau `assets/js/solveur.js` (logique seule, chargé avant `grille.js`) :

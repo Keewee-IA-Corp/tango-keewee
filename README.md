@@ -15,6 +15,8 @@ Ouvrir `index.html` directement dans un navigateur (double-clic).
 
 ## Comment jouer
 
+Les règles sont rappelées dans le panneau dépliable **« How to play »**, sous la grille (cliquez sur le titre pour le déplier ou le replier).
+
 Chaque jour, une nouvelle grille est proposée (la même pour tout le monde, générée à partir de la date).
 Les cases au fond gris sont les **cases de départ** : elles sont déjà remplies avec un soleil ou une lune.
 

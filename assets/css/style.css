@@ -247,6 +247,87 @@ body {
   transform: translate(-50%, -50%);
 }
 
+/* ---------- Panneau « How to play » ---------- */
+
+.regles {
+  max-width: var(--largeur-grille-max);
+  margin: var(--espace-m) auto 0;
+  border-top: 1px solid var(--couleur-bordure-case);
+}
+
+.regles__titre {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espace-s);
+  padding: var(--espace-s) var(--espace-xs);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;                 /* masque le triangle natif (remplacé ci-dessous) */
+  border-radius: var(--rayon-case);
+  touch-action: manipulation;
+}
+
+.regles__titre::-webkit-details-marker {
+  display: none;
+}
+
+/* Chevron indiquant l'état : vers le bas replié, vers le haut déplié. */
+.regles__titre::after {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+  margin-right: var(--espace-xs);
+}
+
+.regles[open] > .regles__titre::after {
+  transform: rotate(-135deg);
+}
+
+.regles__titre:hover {
+  background: var(--couleur-case-survol);
+}
+
+.regles__titre:focus-visible {
+  outline: 3px solid var(--couleur-focus);
+  outline-offset: 1px;
+}
+
+.regles__contenu {
+  padding: 0 var(--espace-xs) var(--espace-xs);
+  font-size: 0.9375rem;
+}
+
+.regles__contenu p {
+  margin: var(--espace-s) 0;
+}
+
+.regles__liste {
+  margin: var(--espace-s) 0;
+  padding-left: var(--espace-l);
+}
+
+.regles__liste li + li {
+  margin-top: var(--espace-xs);
+}
+
+.regles__signe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--couleur-bordure-case);
+  border-radius: 50%;
+  color: var(--couleur-signe);
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: middle;
+}
+
 /* ---------- Écrans plus grands ---------- */
 
 @media (min-width: 40rem) {

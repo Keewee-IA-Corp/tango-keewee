@@ -21,6 +21,21 @@
       </div>
       <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide.</p>
       <p id="annonce-grille" class="visuellement-cache" aria-live="polite"></p>
+
+      <!-- Panneau des règles : <details> se déplie et se replie au clic, au toucher ou au clavier (Entrée/Espace), sans JavaScript. -->
+      <details class="regles">
+        <summary class="regles__titre">How to play</summary>
+        <div class="regles__contenu">
+          <p>Remplissez chaque case avec un soleil ou une lune en respectant ces règles :</p>
+          <ul class="regles__liste">
+            <li>chaque ligne et chaque colonne contient <strong>trois soleils et trois lunes</strong> ;</li>
+            <li><strong>pas plus de deux</strong> symboles identiques côte à côte, horizontalement ou verticalement ;</li>
+            <li>deux cases séparées par un signe <span class="regles__signe" aria-hidden="true">=</span><span class="visuellement-cache">« égal »</span> portent <strong>le même symbole</strong> ;</li>
+            <li>deux cases séparées par un signe <span class="regles__signe" aria-hidden="true">×</span><span class="visuellement-cache">« opposé »</span> portent <strong>des symboles différents</strong>.</li>
+          </ul>
+          <p>Chaque grille a une seule solution, que l'on trouve par la logique, sans jamais deviner.</p>
+        </div>
+      </details>
     </section>
   </main>
 
