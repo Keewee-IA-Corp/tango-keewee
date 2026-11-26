@@ -30,6 +30,10 @@ Pour remplir la grille, cliquez (ou touchez sur mobile) une case blanche : elle 
 Au clavier, Tab pour aller d'une case à l'autre, Entrée ou Espace pour changer son contenu.
 Les cases de départ ne peuvent pas être modifiées.
 
+Sous la grille :
+- **« Undo »** annule le dernier coup (la case retrouve son contenu précédent) ; cliquez plusieurs fois pour annuler les coups un par un, du plus récent au plus ancien ;
+- **« Reset »** vide toutes les cases que vous avez remplies : seules les cases de départ restent. L'historique des coups est alors effacé (un « Reset » ne peut pas être annulé).
+
 Chaque grille a **une seule solution**, que l'on peut trouver **par la logique, sans jamais deviner**.
 Elle contient toujours au moins une case de départ et au moins un signe « = » ou « × ».
 
@@ -43,6 +47,6 @@ Dès que l'erreur est corrigée, le signalement disparaît. Les lecteurs d'écra
 ## Organisation du code
 
 - `assets/js/solveur.js` : solveur (résolution logique pas à pas avec la règle qui justifie chaque case, et comptage exhaustif des solutions).
-- `assets/js/grille.js` : logique (génération de la grille du jour, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, recherche des règles non respectées).
+- `assets/js/grille.js` : logique (génération de la grille du jour, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées).
 - `assets/js/main.js` : affichage de la grille et saisie du joueur.
 - `assets/css/style.css` : styles.

@@ -210,6 +210,40 @@ body {
   z-index: 2;
 }
 
+/* ---------- Boutons « Undo » et « Reset » ---------- */
+
+.commandes {
+  display: flex;
+  justify-content: center;
+  gap: var(--espace-s);
+  max-width: var(--largeur-grille-max);
+  margin: var(--espace-m) auto 0;
+}
+
+.commande {
+  flex: 1 1 0;
+  max-width: 9rem;
+  min-height: 2.75rem;              /* cible tactile confortable */
+  padding: var(--espace-s) var(--espace-m);
+  background: var(--couleur-carte);
+  border: 1px solid var(--couleur-bordure-case);
+  border-radius: var(--rayon-case);
+  color: var(--couleur-texte);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.commande:hover {
+  background: var(--couleur-case-survol);
+}
+
+.commande:focus-visible {
+  outline: 3px solid var(--couleur-focus);
+  outline-offset: 1px;
+}
+
 .consigne {
   margin: var(--espace-m) 0 0;
   text-align: center;

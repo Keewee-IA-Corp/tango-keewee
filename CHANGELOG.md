@@ -1,5 +1,13 @@
 # Changelog
 
+## TKA-20261126-230511-6 — Annuler le dernier coup et réinitialiser la grille
+
+- `assets/js/grille.js` (logique seule) : historique des coups (`creerHistorique`, `jouerCoup` qui enregistre la case et sa valeur précédente), `annulerCoup` (rétablit la valeur précédente du dernier coup, coups annulés un par un en ordre inverse) et `reinitialiser` (vide toutes les cases saisies, garde les cases de départ, efface l'historique).
+- `assets/js/main.js` : les saisies passent par `Grille.jouerCoup` ; boutons « Undo » et « Reset » branchés sur la grille ; après chaque annulation ou réinitialisation, les cases et les signalements de règles sont redessinés et le changement est annoncé dans la zone `aria-live` (« Coup annulé… », « Aucun coup à annuler. », « Grille réinitialisée… »).
+- `index.html` : boutons « Undo » et « Reset » sous la grille, consigne complétée.
+- `assets/css/style.css` : style des boutons (`.commandes`, `.commande`), avec survol et contour de focus clavier.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-4 — Signaler en direct les violations de règle
 
 - `assets/js/grille.js` : nouvelle fonction `Grille.trouverViolations(partie, etat)` (logique seule) qui repère dans l'état de jeu les trois symboles identiques côte à côte, les lignes et colonnes avec plus de 3 soleils ou plus de 3 lunes, et les signes « = » / « × » non respectés (cases vides ignorées).

@@ -198,8 +198,31 @@
     /* Signalements et libellés accessibles, une fois les signes connus. */
     afficherViolations(conteneur, partie, etat, textesSignes);
 
+    /* Historique des coups, pour « Undo ». */
+    var historique = Grille.creerHistorique();
+
     /* Vrai si des règles étaient non respectées avant la dernière saisie. */
     var avaitErreurs = false;
+
+    /* Redessine le symbole d'une case à remplir. */
+    function rafraichirCase(l, c) {
+      var caseEl = trouverCase(conteneur, l, c);
+      var bouton = caseEl ? caseEl.querySelector(".case__bouton") : null;
+      if (bouton) afficherValeurBouton(bouton, etat[l][c]);
+    }
+
+    /* Recalcule les signalements et annonce le message, complété par l'état des règles. */
+    function terminerChangement(message) {
+      var violations = afficherViolations(conteneur, partie, etat, textesSignes);
+      var erreurs = texteViolations(violations);
+      if (erreurs) {
+        message += " " + erreurs;
+      } else if (avaitErreurs) {
+        message += " Plus aucune règle non respectée.";
+      }
+      avaitErreurs = erreurs !== "";
+      annoncer(zoneAnnonce, message);
+    }
 
     /* Un seul écouteur pour toute la grille : clic souris, tap mobile ou Entrée/Espace au clavier. */
     conteneur.addEventListener("click", function (evenement) {
@@ -209,21 +232,35 @@
       var lc = Number(caseCliquee.dataset.ligne);
       var cc = Number(caseCliquee.dataset.colonne);
 
-      var nouvelle = Grille.changerCase(partie, etat, lc, cc);
+      var nouvelle = Grille.jouerCoup(partie, etat, historique, lc, cc);
       if (nouvelle === null) return; /* case de départ : rien ne change */
 
       afficherValeurBouton(bouton, nouvelle);
-      var violations = afficherViolations(conteneur, partie, etat, textesSignes);
-      var message = "Ligne " + (lc + 1) + ", colonne " + (cc + 1) + " : " + nomSymbole(nouvelle) + ".";
-      var erreurs = texteViolations(violations);
-      if (erreurs) {
-        message += " " + erreurs;
-      } else if (avaitErreurs) {
-        message += " Plus aucune règle non respectée.";
-      }
-      avaitErreurs = erreurs !== "";
-      annoncer(zoneAnnonce, message);
+      terminerChangement("Ligne " + (lc + 1) + ", colonne " + (cc + 1) + " : " + nomSymbole(nouvelle) + ".");
     });
+
+    return {
+      /* « Undo » : annule le dernier coup joué. */
+      annuler: function () {
+        var coup = Grille.annulerCoup(etat, historique);
+        if (coup === null) {
+          annoncer(zoneAnnonce, "Aucun coup à annuler.");
+          return;
+        }
+        rafraichirCase(coup.ligne, coup.colonne);
+        terminerChangement(
+          "Coup annulé. Ligne " + (coup.ligne + 1) + ", colonne " + (coup.colonne + 1) + " : " + nomSymbole(coup.valeur) + "."
+        );
+      },
+      /* « Reset » : vide toutes les cases saisies, seules les cases de départ restent. */
+      reinitialiser: function () {
+        Grille.reinitialiser(partie, etat, historique);
+        for (var l = 0; l < partie.taille; l++) {
+          for (var c = 0; c < partie.taille; c++) rafraichirCase(l, c);
+        }
+        terminerChangement("Grille réinitialisée : seules les cases de départ restent.");
+      }
+    };
   }
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -231,6 +268,11 @@
     if (!conteneur) return;
     var partie = Grille.creerPartieDuJour(new Date());
     var etat = Grille.creerEtatJeu(partie);
-    afficherGrille(conteneur, partie, etat, document.getElementById("annonce-grille"));
+    var jeu = afficherGrille(conteneur, partie, etat, document.getElementById("annonce-grille"));
+
+    var boutonAnnuler = document.getElementById("bouton-annuler");
+    var boutonReinitialiser = document.getElementById("bouton-reinitialiser");
+    if (boutonAnnuler) boutonAnnuler.addEventListener("click", jeu.annuler);
+    if (boutonReinitialiser) boutonReinitialiser.addEventListener("click", jeu.reinitialiser);
   });
 })();

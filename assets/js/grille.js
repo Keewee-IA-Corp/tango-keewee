@@ -283,6 +283,54 @@ var Grille = (function () {
     return etat[l][c];
   }
 
+  /*
+   * Historique des coups du joueur, pour « Undo ».
+   * Chaque coup mémorise la case jouée et la valeur qu'elle avait avant.
+   */
+  function creerHistorique() {
+    return [];
+  }
+
+  /*
+   * Joue un coup sur la case (l, c) et l'enregistre dans l'historique.
+   * Renvoie la nouvelle valeur, ou null pour une case de départ (rien n'est enregistré).
+   */
+  function jouerCoup(partie, etat, historique, l, c) {
+    var avant = etat[l][c];
+    var nouvelle = changerCase(partie, etat, l, c);
+    if (nouvelle === null) return null;
+    historique.push({ ligne: l, colonne: c, avant: avant });
+    return nouvelle;
+  }
+
+  /*
+   * Annule le dernier coup de l'historique : la case retrouve sa valeur précédente.
+   * Renvoie { ligne, colonne, valeur } (valeur rétablie), ou null s'il n'y a aucun coup à annuler.
+   */
+  function annulerCoup(etat, historique) {
+    if (historique.length === 0) return null;
+    var coup = historique.pop();
+    etat[coup.ligne][coup.colonne] = coup.avant;
+    return { ligne: coup.ligne, colonne: coup.colonne, valeur: coup.avant };
+  }
+
+  /*
+   * Vide toutes les cases saisies par le joueur : seules les cases de départ restent.
+   * L'historique est vidé (on repart de zéro). Renvoie le nombre de cases vidées.
+   */
+  function reinitialiser(partie, etat, historique) {
+    var nbVidees = 0;
+    for (var l = 0; l < partie.taille; l++) {
+      for (var c = 0; c < partie.taille; c++) {
+        if (estCaseDepart(partie, l, c)) continue;
+        if (etat[l][c] !== VIDE) nbVidees++;
+        etat[l][c] = VIDE;
+      }
+    }
+    historique.length = 0;
+    return nbVidees;
+  }
+
   /* Case voisine désignée par un signe (à droite ou en dessous). */
   function caseVoisine(signe) {
     return {
@@ -391,6 +439,10 @@ var Grille = (function () {
     estCaseDepart: estCaseDepart,
     creerEtatJeu: creerEtatJeu,
     changerCase: changerCase,
+    creerHistorique: creerHistorique,
+    jouerCoup: jouerCoup,
+    annulerCoup: annulerCoup,
+    reinitialiser: reinitialiser,
     trouverViolations: trouverViolations
   };
 })();
