@@ -56,10 +56,16 @@ Dès que l'erreur est corrigée, le signalement disparaît. Les lecteurs d'écra
 - Le bouton **« Rejouer »** lance une nouvelle grille (« grille bonus » n°1, n°2… du jour, elles aussi identiques pour tout le monde) et remet le chronomètre à 0:00 ; il repart à votre premier coup.
 - Les temps ne sont pas enregistrés : il n'y a ni classement ni meilleur temps.
 
+### Grille aléatoire
+
+- Le bouton **« Nouvelle grille aléatoire »**, sous « Undo », « Reset » et « Hint », est utilisable à tout moment, même une fois la grille résolue. Il affiche une grille tirée au hasard (« Grille aléatoire n°1, n°2… »), différente de la précédente, qui a elle aussi **une seule solution** trouvable par la logique.
+- Le chronomètre revient à 0:00 (il repart à votre premier coup), l'historique des coups, les signalements et le message d'indice sont effacés.
+- Une grille aléatoire n'est pas la même pour tout le monde ; actualiser la page ramène la grille du jour.
+
 ## Organisation du code
 
 - `assets/js/solveur.js` : solveur (résolution logique pas à pas avec la règle qui justifie chaque case, et comptage exhaustif des solutions).
-- `assets/js/grille.js` : logique (génération de la grille du jour à partir d'une graine tirée de la date, comparaison avec la grille de la veille, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées, indice pour « Hint », détection de la grille résolue, grilles bonus pour « Rejouer »).
+- `assets/js/grille.js` : logique (génération de la grille du jour à partir d'une graine tirée de la date, comparaison avec la grille de la veille, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées, indice pour « Hint », détection de la grille résolue, grilles bonus pour « Rejouer », grilles aléatoires).
 - `assets/js/chrono.js` : logique du chronomètre (démarrage, arrêt, temps écoulé, format m:ss).
 - `assets/js/main.js` : affichage de la grille, du chronomètre et du message de félicitations, saisie du joueur.
 - `assets/css/style.css` : styles.

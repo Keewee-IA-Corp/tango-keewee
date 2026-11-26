@@ -373,6 +373,11 @@ body {
   background: var(--couleur-carte);
 }
 
+/* Bouton seul sur sa ligne (« Nouvelle grille aléatoire »). */
+.commande--large {
+  max-width: none;
+}
+
 /* Bouton mis en avant (« Rejouer »). */
 .commande--principale {
   width: 100%;

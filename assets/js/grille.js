@@ -349,6 +349,24 @@ var Grille = (function () {
     return partie;
   }
 
+  /*
+   * Crée une grille aléatoire (bouton « Nouvelle grille aléatoire »).
+   * « graine » est un entier tiré au hasard par l'appelant (affichage) : la
+   * grille ne dépend que d'elle, ce qui la rend reproductible pour les tests.
+   * Elle est différente de « partieAEviter » (la grille affichée jusque-là).
+   * Mêmes garanties que la grille du jour : solution unique, résoluble sans deviner.
+   * Pas de « cle » : une grille aléatoire n'est liée à aucune date.
+   */
+  function creerPartieAleatoire(graine, partieAEviter) {
+    var partie = null;
+    for (var variante = 0; variante < NB_VARIANTES_MAX; variante++) {
+      partie = genererPartie(graineDuJour("aleatoire/" + (graine >>> 0), variante));
+      if (!partieAEviter || !partiesIdentiques(partie, partieAEviter)) break;
+    }
+    partie.aleatoire = true;
+    return partie;
+  }
+
   /* Valeur suivante d'une case saisie par le joueur : vide → soleil → lune → vide. */
   function valeurSuivante(valeur) {
     if (valeur === VIDE) return SOLEIL;
@@ -590,6 +608,7 @@ var Grille = (function () {
     cleDuJour: cleDuJour,
     creerPartieDuJour: creerPartieDuJour,
     creerPartieBonus: creerPartieBonus,
+    creerPartieAleatoire: creerPartieAleatoire,
     estResolue: estResolue,
     partiesIdentiques: partiesIdentiques,
     verifierPartie: verifierPartie,

@@ -457,7 +457,11 @@
       /* Date de la grille affichée : permet de vérifier qu'on joue la même grille que ses proches. */
       if (dateEl) {
         dateEl.textContent = libelleDate;
-        dateEl.setAttribute("datetime", partie.cle);
+        if (partie.cle) {
+          dateEl.setAttribute("datetime", partie.cle);
+        } else {
+          dateEl.removeAttribute("datetime"); /* grille aléatoire : liée à aucune date */
+        }
       }
 
       jeu = afficherGrille(conteneur, partie, Grille.creerEtatJeu(partie), zoneAnnonce, {
@@ -472,6 +476,13 @@
     if (boutonReinitialiser) boutonReinitialiser.addEventListener("click", function () { jeu.reinitialiser(); });
     if (boutonIndice) boutonIndice.addEventListener("click", function () { jeu.indice(); });
 
+    /* Après le lancement d'une nouvelle grille : annonce et focus sur la première case à remplir. */
+    function signalerNouvelleGrille(texte) {
+      annoncer(zoneAnnonce, texte + " Le chronomètre est à zéro et démarrera à votre premier coup.");
+      var premiereCase = conteneur.querySelector(".case__bouton");
+      if (premiereCase) premiereCase.focus();
+    }
+
     /* « Rejouer » : nouvelle grille (grille bonus suivante du jour) et chronomètre à zéro. */
     if (boutonRejouer) {
       boutonRejouer.addEventListener("click", function () {
@@ -480,9 +491,24 @@
           Grille.creerPartieBonus(aujourdhui, numeroBonus, partie),
           "Grille bonus n°" + numeroBonus + " du " + texteDate(aujourdhui)
         );
-        annoncer(zoneAnnonce, "Nouvelle grille lancée. Le chronomètre est à zéro et démarrera à votre premier coup.");
-        var premiereCase = conteneur.querySelector(".case__bouton");
-        if (premiereCase) premiereCase.focus();
+        signalerNouvelleGrille("Nouvelle grille lancée.");
+      });
+    }
+
+    /*
+     * « Nouvelle grille aléatoire » : utilisable à tout moment (même grille résolue).
+     * La graine est tirée au hasard ; la grille garde les garanties de grille.js
+     * (solution unique, résoluble sans deviner). Chronomètre, historique des coups
+     * et signalements repartent de zéro (lancerPartie).
+     */
+    var numeroAleatoire = 0;
+    var boutonAleatoire = document.getElementById("bouton-aleatoire");
+    if (boutonAleatoire) {
+      boutonAleatoire.addEventListener("click", function () {
+        numeroAleatoire++;
+        var graine = Math.floor(Math.random() * 4294967296);
+        lancerPartie(Grille.creerPartieAleatoire(graine, partie), "Grille aléatoire n°" + numeroAleatoire);
+        signalerNouvelleGrille("Nouvelle grille aléatoire affichée.");
       });
     }
   });

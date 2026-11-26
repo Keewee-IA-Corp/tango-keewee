@@ -1,5 +1,13 @@
 # Changelog
 
+## TKA-20261126-230511-10 — Générer une grille aléatoire à la demande
+
+- `assets/js/grille.js` (logique seule) : `Grille.creerPartieAleatoire(graine, partieAEviter)` fabrique une grille à partir d'une graine entière, avec la même méthode que la grille du jour (`genererPartie` : solution unique et résoluble sans deviner, contrôlée par `verifierPartie`), différente de la grille affichée. La partie n'a pas de `cle` (aucune date) et porte `aleatoire: true`.
+- `assets/js/main.js` : bouton « Nouvelle grille aléatoire » ; la graine est tirée avec `Math.random()`. La grille est lancée par `lancerPartie` : chronomètre à 0:00 (en attente du premier coup), historique des coups, signalements et message d'indice remis à zéro, message de victoire masqué, « Undo », « Reset » et « Hint » réactivés. Le libellé de la grille devient « Grille aléatoire n°… », l'arrivée est annoncée dans la zone `aria-live` et le focus va sur la première case à remplir.
+- `index.html` : bouton « Nouvelle grille aléatoire » sur sa propre ligne sous les commandes (toujours actif, même grille résolue), consigne complétée.
+- `assets/css/style.css` : modificateur `.commande--large` (bouton pleine largeur).
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-5 — Donner un indice ou signaler une erreur (bouton « Hint »)
 
 - `assets/js/grille.js` (logique seule) : `Grille.demanderIndice(partie, etat)` renvoie, sans rien modifier, la première case remplie qui ne correspond pas à la solution (`erreur`), sinon la prochaine déduction logique de `Solveur.prochaineDeduction` sur la grille actuelle (`deduction`, avec la règle qui la justifie), sinon `aucun`. `Grille.poserIndice` pose le symbole déduit et l'enregistre dans l'historique (annulable avec « Undo »).

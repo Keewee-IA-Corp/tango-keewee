@@ -41,9 +41,13 @@
         <button type="button" id="bouton-reinitialiser" class="commande">Reset</button>
         <button type="button" id="bouton-indice" class="commande">Hint</button>
       </div>
+      <!-- Toujours actif, même grille résolue : génère une grille aléatoire et remet le chronomètre à zéro. -->
+      <div class="commandes">
+        <button type="button" id="bouton-aleatoire" class="commande commande--large">Nouvelle grille aléatoire</button>
+      </div>
       <!-- Résultat du bouton « Hint », affiché par assets/js/main.js (annoncé aussi dans la zone aria-live ci-dessous). -->
       <p id="message-indice" class="message-indice" hidden></p>
-      <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide. Les règles non respectées s'affichent en rouge. « Undo » annule le dernier coup, « Reset » vide la grille, « Hint » signale une case erronée ou remplit une case qui se déduit. Le chronomètre démarre à votre premier coup.</p>
+      <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide. Les règles non respectées s'affichent en rouge. « Undo » annule le dernier coup, « Reset » vide la grille, « Hint » signale une case erronée ou remplit une case qui se déduit. Le chronomètre démarre à votre premier coup. « Nouvelle grille aléatoire » lance une autre grille quand vous voulez.</p>
       <p id="annonce-grille" class="visuellement-cache" aria-live="polite"></p>
 
       <!-- Panneau des règles : <details> se déplie et se replie au clic, au toucher ou au clavier (Entrée/Espace), sans JavaScript. -->
