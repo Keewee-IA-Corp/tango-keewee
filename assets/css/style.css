@@ -123,6 +123,15 @@ body {
   box-shadow: var(--ombre-carte);
 }
 
+/* Date de la grille du jour, au-dessus de la grille. */
+.date-grille {
+  margin: 0 0 var(--espace-m);
+  text-align: center;
+  color: var(--couleur-texte-doux);
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
 /* ---------- Grille ---------- */
 
 .grille {

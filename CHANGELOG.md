@@ -1,5 +1,14 @@
 # Changelog
 
+## TKA-20261126-230511-9 — Générer la grille du jour identique pour tous
+
+- `assets/js/grille.js` (logique seule) : la graine de la grille du jour est désormais un hachage FNV-1a 32 bits (calcul entier, identique dans tous les navigateurs) de la date du calendrier « AAAA-MM-JJ » (`Grille.cleDuJour`), au lieu du nombre AAAAMMJJ. Toute la fabrication (`genererPartie`) ne dépend que de cette graine : même jour → exactement la même grille pour tout le monde, sans serveur ni stockage.
+- La grille du jour est comparée à celle de la veille (`Grille.partiesIdentiques` : cases de départ et signes) ; si, par un hasard très improbable, elles étaient identiques, la variante suivante de la graine du jour est utilisée. La grille change donc forcément d'un jour à l'autre.
+- `partie.cle` contient la date « AAAA-MM-JJ » de la grille.
+- `index.html`, `assets/js/main.js`, `assets/css/style.css` : la date de la grille est affichée au-dessus de la grille (« Grille du vendredi 27 novembre 2026 ») pour vérifier facilement qu'on joue la même grille que ses proches.
+- La grille d'une date donnée est différente de celle des versions précédentes (nouvelle graine).
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-6 — Annuler le dernier coup et réinitialiser la grille
 
 - `assets/js/grille.js` (logique seule) : historique des coups (`creerHistorique`, `jouerCoup` qui enregistre la case et sa valeur précédente), `annulerCoup` (rétablit la valeur précédente du dernier coup, coups annulés un par un en ordre inverse) et `reinitialiser` (vide toutes les cases saisies, garde les cases de départ, efface l'historique).

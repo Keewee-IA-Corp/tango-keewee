@@ -10,8 +10,9 @@
  *   - chaque ligne et chaque colonne contient 3 soleils et 3 lunes ;
  *   - jamais plus de 2 symboles identiques côte à côte (ligne ou colonne).
  *
- * La grille du jour est générée à partir de la date : même graine,
- * donc même grille pour tout le monde le même jour.
+ * La grille du jour est générée à partir de la date « AAAA-MM-JJ » : même
+ * graine, donc même grille pour tout le monde le même jour, et une grille
+ * différente de celle de la veille (voir creerPartieDuJour).
  *
  * Chaque grille générée admet une seule solution et se résout par la
  * logique, sans deviner (voir fabriquerEnigme et solveur.js, chargé avant).
@@ -46,9 +47,40 @@ var Grille = (function () {
     };
   }
 
-  /* Graine à partir d'une date : AAAAMMJJ (heure locale). */
-  function graineDuJour(date) {
-    return date.getFullYear() * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
+  /* Nombre maximal de variantes essayées pour que la grille diffère de celle de la veille. */
+  var NB_VARIANTES_MAX = 3;
+
+  function deuxChiffres(n) {
+    return (n < 10 ? "0" : "") + n;
+  }
+
+  /*
+   * Clé du jour « AAAA-MM-JJ », d'après la date du calendrier de l'appareil
+   * (heure locale) : tous les joueurs qui sont le même jour ont la même clé.
+   */
+  function cleDuJour(date) {
+    return date.getFullYear() + "-" + deuxChiffres(date.getMonth() + 1) + "-" + deuxChiffres(date.getDate());
+  }
+
+  /* Même jour, la veille (le passage à l'heure d'été ou d'hiver est sans effet : on ne garde que la date). */
+  function veille(date) {
+    return new Date(date.getFullYear(), date.getMonth(), date.getDate() - 1, 12);
+  }
+
+  /*
+   * Graine à partir de la clé du jour (et d'un numéro de variante) :
+   * hachage FNV-1a 32 bits du texte « AAAA-MM-JJ#variante ».
+   * Calcul uniquement sur des entiers (Math.imul) : le résultat est le même
+   * dans tous les navigateurs, donc la même grille pour tout le monde.
+   */
+  function graineDuJour(cle, variante) {
+    var texte = cle + "#" + (variante || 0);
+    var h = 0x811c9dc5;
+    for (var i = 0; i < texte.length; i++) {
+      h ^= texte.charCodeAt(i);
+      h = Math.imul(h, 0x01000193) >>> 0;
+    }
+    return h >>> 0;
   }
 
   function melanger(tableau, aleatoire) {
@@ -221,13 +253,11 @@ var Grille = (function () {
   }
 
   /*
-   * Crée la partie du jour.
-   * Renvoie { taille, solution, depart, signes } où « depart » ne contient
-   * que les cases de départ (les autres valent VIDE) et « signes » la liste
-   * des contraintes « = » / « × » entre cases voisines.
+   * Fabrique une partie entièrement déterminée par la graine :
+   * même graine → même solution, mêmes cases de départ, mêmes signes.
    */
-  function creerPartieDuJour(date) {
-    var aleatoire = creerAleatoire(graineDuJour(date || new Date()));
+  function genererPartie(graine) {
+    var aleatoire = creerAleatoire(graine);
     var partie = null;
     for (var essai = 0; essai < NB_ESSAIS_MAX; essai++) {
       var solution = grilleVide();
@@ -246,6 +276,56 @@ var Grille = (function () {
      * révélée, donc forcément unique et sans supposition.
      */
     partie.depart = copierGrille(partie.solution);
+    return partie;
+  }
+
+  function memesGrilles(a, b) {
+    for (var l = 0; l < a.length; l++) {
+      for (var c = 0; c < a[l].length; c++) {
+        if (a[l][c] !== b[l][c]) return false;
+      }
+    }
+    return true;
+  }
+
+  /* Vrai si deux parties affichent exactement la même grille (cases de départ et signes). */
+  function partiesIdentiques(a, b) {
+    if (!memesGrilles(a.depart, b.depart) || a.signes.length !== b.signes.length) return false;
+    var cle = function (s) {
+      return s.ligne + "," + s.colonne + "," + s.direction + "," + s.type;
+    };
+    var signesB = {};
+    for (var i = 0; i < b.signes.length; i++) signesB[cle(b.signes[i])] = true;
+    for (var j = 0; j < a.signes.length; j++) {
+      if (!signesB[cle(a.signes[j])]) return false;
+    }
+    return true;
+  }
+
+  /*
+   * Crée la partie du jour, générée à partir de la seule date (aucun stockage,
+   * aucun hasard non reproductible) : deux visiteurs le même jour obtiennent
+   * exactement la même grille.
+   *
+   * Pour garantir qu'elle change d'un jour à l'autre, elle est comparée à la
+   * grille de la veille ; dans le cas (très improbable) où elles seraient
+   * identiques, on passe à la variante suivante de la graine du jour.
+   *
+   * Renvoie { cle, taille, solution, depart, signes } où « cle » est la date
+   * « AAAA-MM-JJ », « depart » ne contient que les cases de départ (les autres
+   * valent VIDE) et « signes » la liste des contraintes « = » / « × » entre
+   * cases voisines.
+   */
+  function creerPartieDuJour(date) {
+    var jour = date || new Date();
+    var cle = cleDuJour(jour);
+    var partieVeille = genererPartie(graineDuJour(cleDuJour(veille(jour)), 0));
+    var partie = null;
+    for (var variante = 0; variante < NB_VARIANTES_MAX; variante++) {
+      partie = genererPartie(graineDuJour(cle, variante));
+      if (!partiesIdentiques(partie, partieVeille)) break;
+    }
+    partie.cle = cle;
     return partie;
   }
 
@@ -433,7 +513,9 @@ var Grille = (function () {
     OPPOSE: OPPOSE,
     DROITE: DROITE,
     BAS: BAS,
+    cleDuJour: cleDuJour,
     creerPartieDuJour: creerPartieDuJour,
+    partiesIdentiques: partiesIdentiques,
     verifierPartie: verifierPartie,
     valeurSuivante: valeurSuivante,
     estCaseDepart: estCaseDepart,

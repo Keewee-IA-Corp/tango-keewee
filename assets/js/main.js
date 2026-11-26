@@ -263,10 +263,29 @@
     };
   }
 
+  var JOURS = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+  var MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août",
+    "septembre", "octobre", "novembre", "décembre"];
+
+  /* « vendredi 27 novembre 2026 » (sans dépendre de la langue du navigateur). */
+  function texteDate(date) {
+    var jour = date.getDate() === 1 ? "1er" : String(date.getDate());
+    return JOURS[date.getDay()] + " " + jour + " " + MOIS[date.getMonth()] + " " + date.getFullYear();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     var conteneur = document.getElementById("grille");
     if (!conteneur) return;
-    var partie = Grille.creerPartieDuJour(new Date());
+    var aujourdhui = new Date();
+    var partie = Grille.creerPartieDuJour(aujourdhui);
+
+    /* Date de la grille affichée : permet de vérifier qu'on joue la même grille que ses proches. */
+    var dateEl = document.getElementById("date-grille");
+    if (dateEl) {
+      dateEl.textContent = "Grille du " + texteDate(aujourdhui);
+      dateEl.setAttribute("datetime", partie.cle);
+    }
+
     var etat = Grille.creerEtatJeu(partie);
     var jeu = afficherGrille(conteneur, partie, etat, document.getElementById("annonce-grille"));
 
