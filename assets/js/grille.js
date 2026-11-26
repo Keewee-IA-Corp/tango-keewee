@@ -160,6 +160,40 @@ var Grille = (function () {
     };
   }
 
+  /* Valeur suivante d'une case saisie par le joueur : vide → soleil → lune → vide. */
+  function valeurSuivante(valeur) {
+    if (valeur === VIDE) return SOLEIL;
+    if (valeur === SOLEIL) return LUNE;
+    return VIDE;
+  }
+
+  function estCaseDepart(partie, l, c) {
+    return partie.depart[l][c] !== VIDE;
+  }
+
+  /*
+   * État de jeu initial : copie de la grille de départ, que le joueur
+   * complète ensuite. Les cases de départ n'y sont jamais modifiées.
+   */
+  function creerEtatJeu(partie) {
+    var etat = [];
+    for (var l = 0; l < partie.taille; l++) {
+      etat.push(partie.depart[l].slice());
+    }
+    return etat;
+  }
+
+  /*
+   * Fait passer la case (l, c) à sa valeur suivante.
+   * Renvoie la nouvelle valeur, ou null si la case est une case de départ
+   * (son contenu ne change pas).
+   */
+  function changerCase(partie, etat, l, c) {
+    if (estCaseDepart(partie, l, c)) return null;
+    etat[l][c] = valeurSuivante(etat[l][c]);
+    return etat[l][c];
+  }
+
   return {
     TAILLE: TAILLE,
     VIDE: VIDE,
@@ -169,6 +203,10 @@ var Grille = (function () {
     OPPOSE: OPPOSE,
     DROITE: DROITE,
     BAS: BAS,
-    creerPartieDuJour: creerPartieDuJour
+    creerPartieDuJour: creerPartieDuJour,
+    valeurSuivante: valeurSuivante,
+    estCaseDepart: estCaseDepart,
+    creerEtatJeu: creerEtatJeu,
+    changerCase: changerCase
   };
 })();

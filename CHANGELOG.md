@@ -1,5 +1,13 @@
 # Changelog
 
+## TKA-20261126-230511-3 — Saisir un soleil ou une lune dans une case vide
+
+- `assets/js/grille.js` : état de jeu séparé de la grille de départ (`creerEtatJeu`), cycle d'une case vide → soleil → lune → vide (`valeurSuivante`, `changerCase`) ; les cases de départ ne sont jamais modifiées (`changerCase` renvoie `null`).
+- `assets/js/main.js` : chaque case à remplir contient un `<button>` qui occupe toute la case (clic souris, tap mobile, Entrée/Espace au clavier) ; les cases de départ n'ont pas de bouton et ne réagissent pas. L'`aria-label` de la case est mis à jour à chaque changement et le nouveau contenu est annoncé dans une zone `aria-live`.
+- `assets/css/style.css` : style du bouton de case (survol, contour de focus clavier, `touch-action: manipulation` pour un tap immédiat sans zoom au double-tap).
+- `index.html` : courte consigne sous la grille et zone d'annonce `aria-live`.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-2 — Afficher les signes « = » et « × » entre les cases
 
 - `assets/js/grille.js` : génération de 8 signes entre cases voisines (à droite ou en dessous), cohérents avec la solution du jour : « = » si les deux cases portent le même symbole, « × » sinon. Ils sont renvoyés dans `partie.signes`. Les cases de départ restent identiques à la version précédente.

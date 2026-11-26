@@ -16,6 +16,8 @@
   --couleur-lune: #2f6fd6;
   --couleur-lune-contour: #1a428a;
   --couleur-signe: #3d4350;         /* gris foncé des signes = et × */
+  --couleur-case-survol: #f0f3f8;   /* case à remplir survolée */
+  --couleur-focus: #2f6fd6;         /* contour de focus clavier */
 
   /* Espacements et formes */
   --espace-xs: 0.25rem;
@@ -149,6 +151,44 @@ body {
 
 .case--depart {
   background: var(--couleur-case-depart);
+}
+
+/* Bouton d'une case à remplir : il occupe toute la case. */
+.case__bouton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--rayon-case);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  touch-action: manipulation;       /* tap immédiat, sans zoom au double-tap sur mobile */
+  -webkit-tap-highlight-color: transparent;
+}
+
+.case__bouton:hover {
+  background: var(--couleur-case-survol);
+}
+
+.case__bouton:focus-visible {
+  outline: 3px solid var(--couleur-focus);
+  outline-offset: 1px;
+  z-index: 2;
+}
+
+.consigne {
+  margin: var(--espace-m) 0 0;
+  text-align: center;
+  color: var(--couleur-texte-doux);
+  font-size: 0.875rem;
 }
 
 .symbole {

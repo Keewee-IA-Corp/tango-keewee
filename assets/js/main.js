@@ -1,5 +1,5 @@
 /*
- * main.js — Affichage de la grille (aucune règle du jeu ici).
+ * main.js — Affichage de la grille et saisie du joueur (aucune règle du jeu ici).
  * Dépend de grille.js, chargé avant ce fichier.
  */
 (function () {
@@ -54,44 +54,90 @@
     return signe.type === Grille.EGAL ? "signe égal" : "signe opposé";
   }
 
-  /* Ajoute un signe à la grille déjà affichée, et le décrit dans l'aria-label des deux cases. */
-  function afficherSigne(conteneur, signe) {
+  /* Tableau 6×6 de listes vides : les descriptions des signes de chaque case. */
+  function creerTextesSignes(taille) {
+    var textes = [];
+    for (var l = 0; l < taille; l++) {
+      var ligne = [];
+      for (var c = 0; c < taille; c++) ligne.push([]);
+      textes.push(ligne);
+    }
+    return textes;
+  }
+
+  /* Texte lu par les lecteurs d'écran pour une case. */
+  function libelleCase(l, c, valeur, depart, textesSignes) {
+    var texte = "Ligne " + (l + 1) + ", colonne " + (c + 1) + " : " + nomSymbole(valeur);
+    if (depart) texte += " (case de départ)";
+    var signes = textesSignes[l][c];
+    for (var i = 0; i < signes.length; i++) texte += ", " + signes[i];
+    return texte;
+  }
+
+  function trouverCase(conteneur, l, c) {
+    return conteneur.querySelector('.case[data-ligne="' + l + '"][data-colonne="' + c + '"]');
+  }
+
+  /* Élément qui porte l'aria-label : le bouton pour une case à remplir, la case elle-même sinon. */
+  function elementLibelle(caseEl) {
+    return caseEl.querySelector(".case__bouton") || caseEl;
+  }
+
+  /* Ajoute un signe à la grille affichée et mémorise sa description pour les deux cases. */
+  function afficherSigne(conteneur, signe, textesSignes) {
     var l2 = signe.direction === Grille.BAS ? signe.ligne + 1 : signe.ligne;
     var c2 = signe.direction === Grille.DROITE ? signe.colonne + 1 : signe.colonne;
-    var caseA = conteneur.querySelector('[data-ligne="' + signe.ligne + '"][data-colonne="' + signe.colonne + '"]');
-    var caseB = conteneur.querySelector('[data-ligne="' + l2 + '"][data-colonne="' + c2 + '"]');
+    var caseA = trouverCase(conteneur, signe.ligne, signe.colonne);
+    var caseB = trouverCase(conteneur, l2, c2);
     if (!caseA || !caseB) return;
 
     caseA.appendChild(creerSigne(signe));
 
     var versB = signe.direction === Grille.DROITE ? "la case à droite" : "la case en dessous";
     var versA = signe.direction === Grille.DROITE ? "la case à gauche" : "la case au-dessus";
-    caseA.setAttribute("aria-label", caseA.getAttribute("aria-label") + ", " + texteSigne(signe) + " avec " + versB);
-    caseB.setAttribute("aria-label", caseB.getAttribute("aria-label") + ", " + texteSigne(signe) + " avec " + versA);
+    textesSignes[signe.ligne][signe.colonne].push(texteSigne(signe) + " avec " + versB);
+    textesSignes[l2][c2].push(texteSigne(signe) + " avec " + versA);
   }
 
-  function afficherGrille(conteneur, partie) {
+  /* Remplace le symbole affiché dans un bouton de case par celui de « valeur ». */
+  function afficherValeurBouton(bouton, valeur) {
+    var ancien = bouton.querySelector(".symbole");
+    if (ancien) bouton.removeChild(ancien);
+    if (valeur !== Grille.VIDE) bouton.appendChild(creerSymbole(valeur));
+  }
+
+  function annoncer(zone, texte) {
+    if (zone) zone.textContent = texte;
+  }
+
+  function afficherGrille(conteneur, partie, etat, zoneAnnonce) {
+    var textesSignes = creerTextesSignes(partie.taille);
     conteneur.textContent = "";
+
     for (var l = 0; l < partie.taille; l++) {
       var ligne = document.createElement("div");
       ligne.className = "grille__ligne";
       ligne.setAttribute("role", "row");
 
       for (var c = 0; c < partie.taille; c++) {
-        var valeur = partie.depart[l][c];
         var caseEl = document.createElement("div");
         caseEl.className = "case";
         caseEl.setAttribute("role", "gridcell");
         caseEl.dataset.ligne = String(l);
         caseEl.dataset.colonne = String(c);
 
-        var description = "Ligne " + (l + 1) + ", colonne " + (c + 1) + " : " + nomSymbole(valeur);
-        if (valeur !== Grille.VIDE) {
+        if (Grille.estCaseDepart(partie, l, c)) {
+          /* Case de départ : non modifiable, donc pas de bouton. */
           caseEl.classList.add("case--depart");
-          caseEl.appendChild(creerSymbole(valeur));
-          description += " (case de départ)";
+          caseEl.appendChild(creerSymbole(partie.depart[l][c]));
+        } else {
+          /* Case à remplir : un bouton, utilisable à la souris, au doigt et au clavier. */
+          var bouton = document.createElement("button");
+          bouton.type = "button";
+          bouton.className = "case__bouton";
+          afficherValeurBouton(bouton, etat[l][c]);
+          caseEl.appendChild(bouton);
         }
-        caseEl.setAttribute("aria-label", description);
         ligne.appendChild(caseEl);
       }
       conteneur.appendChild(ligne);
@@ -99,13 +145,43 @@
 
     var signes = partie.signes || [];
     for (var s = 0; s < signes.length; s++) {
-      afficherSigne(conteneur, signes[s]);
+      afficherSigne(conteneur, signes[s], textesSignes);
     }
+
+    /* Libellés accessibles, une fois les signes connus. */
+    for (var l3 = 0; l3 < partie.taille; l3++) {
+      for (var c3 = 0; c3 < partie.taille; c3++) {
+        var el = trouverCase(conteneur, l3, c3);
+        elementLibelle(el).setAttribute(
+          "aria-label",
+          libelleCase(l3, c3, etat[l3][c3], Grille.estCaseDepart(partie, l3, c3), textesSignes)
+        );
+      }
+    }
+
+    /* Un seul écouteur pour toute la grille : clic souris, tap mobile ou Entrée/Espace au clavier. */
+    conteneur.addEventListener("click", function (evenement) {
+      var bouton = evenement.target.closest ? evenement.target.closest(".case__bouton") : null;
+      if (!bouton || !conteneur.contains(bouton)) return;
+      var caseCliquee = bouton.parentNode;
+      var lc = Number(caseCliquee.dataset.ligne);
+      var cc = Number(caseCliquee.dataset.colonne);
+
+      var nouvelle = Grille.changerCase(partie, etat, lc, cc);
+      if (nouvelle === null) return; /* case de départ : rien ne change */
+
+      afficherValeurBouton(bouton, nouvelle);
+      var libelle = libelleCase(lc, cc, nouvelle, false, textesSignes);
+      bouton.setAttribute("aria-label", libelle);
+      annoncer(zoneAnnonce, "Ligne " + (lc + 1) + ", colonne " + (cc + 1) + " : " + nomSymbole(nouvelle));
+    });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     var conteneur = document.getElementById("grille");
     if (!conteneur) return;
-    afficherGrille(conteneur, Grille.creerPartieDuJour(new Date()));
+    var partie = Grille.creerPartieDuJour(new Date());
+    var etat = Grille.creerEtatJeu(partie);
+    afficherGrille(conteneur, partie, etat, document.getElementById("annonce-grille"));
   });
 })();

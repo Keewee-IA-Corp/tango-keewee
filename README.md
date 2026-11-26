@@ -24,10 +24,14 @@ Règles de la grille :
 - un signe « = » entre deux cases voisines indique qu'elles portent le même symbole ;
 - un signe « × » entre deux cases voisines indique qu'elles portent des symboles différents.
 
-La saisie des cases et la vérification des contraintes arriveront dans les prochaines versions.
+Pour remplir la grille, cliquez (ou touchez sur mobile) une case blanche : elle passe à un soleil, puis à une lune, puis redevient vide.
+Au clavier, Tab pour aller d'une case à l'autre, Entrée ou Espace pour changer son contenu.
+Les cases de départ ne peuvent pas être modifiées.
+
+La vérification des contraintes arrivera dans une prochaine version.
 
 ## Organisation du code
 
-- `assets/js/grille.js` : logique (génération de la grille du jour, règles).
-- `assets/js/main.js` : affichage de la grille.
+- `assets/js/grille.js` : logique (génération de la grille du jour, état de la partie, changement d'une case).
+- `assets/js/main.js` : affichage de la grille et saisie du joueur.
 - `assets/css/style.css` : styles.
