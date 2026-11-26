@@ -44,9 +44,17 @@ Les règles non respectées sont signalées en direct, à chaque saisie :
 
 Dès que l'erreur est corrigée, le signalement disparaît. Les lecteurs d'écran annoncent aussi les règles non respectées après chaque saisie.
 
+### Chronomètre et victoire
+
+- Le **chronomètre** (icône horloge, sous la date, au format m:ss) démarre dès que vous posez votre premier soleil ou votre première lune, et non à l'ouverture de la page. « Undo » et « Reset » ne l'arrêtent pas.
+- Quand la dernière case est remplie et que toutes les règles sont respectées, le chronomètre s'arrête, la grille se verrouille et un message de **félicitations** affiche votre temps.
+- Le bouton **« Rejouer »** lance une nouvelle grille (« grille bonus » n°1, n°2… du jour, elles aussi identiques pour tout le monde) et remet le chronomètre à 0:00 ; il repart à votre premier coup.
+- Les temps ne sont pas enregistrés : il n'y a ni classement ni meilleur temps.
+
 ## Organisation du code
 
 - `assets/js/solveur.js` : solveur (résolution logique pas à pas avec la règle qui justifie chaque case, et comptage exhaustif des solutions).
-- `assets/js/grille.js` : logique (génération de la grille du jour à partir d'une graine tirée de la date, comparaison avec la grille de la veille, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées).
-- `assets/js/main.js` : affichage de la grille et saisie du joueur.
+- `assets/js/grille.js` : logique (génération de la grille du jour à partir d'une graine tirée de la date, comparaison avec la grille de la veille, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées, détection de la grille résolue, grilles bonus pour « Rejouer »).
+- `assets/js/chrono.js` : logique du chronomètre (démarrage, arrêt, temps écoulé, format m:ss).
+- `assets/js/main.js` : affichage de la grille, du chronomètre et du message de félicitations, saisie du joueur.
 - `assets/css/style.css` : styles.

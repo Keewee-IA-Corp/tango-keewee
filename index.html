@@ -18,14 +18,29 @@
       <h2 id="titre-grille" class="visuellement-cache">Grille du jour</h2>
       <!-- Date remplie par assets/js/main.js : la même grille pour tout le monde ce jour-là. -->
       <p class="date-grille"><time id="date-grille">Grille du jour</time></p>
+      <!-- Chronomètre : démarre au premier soleil ou à la première lune posés, s'arrête quand la grille est résolue. -->
+      <p class="chrono">
+        <svg class="chrono__icone" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9"></circle>
+          <path d="M12 7v5l3 2"></path>
+        </svg>
+        <span class="visuellement-cache">Temps écoulé :</span>
+        <span id="chrono" class="chrono__temps" role="timer">0:00</span>
+      </p>
       <div id="grille" class="grille" role="grid" aria-label="Grille de 6 lignes sur 6 colonnes">
         <!-- Les 36 cases sont créées par assets/js/main.js -->
+      </div>
+      <!-- Message de félicitations, affiché par assets/js/main.js quand la grille est résolue. -->
+      <div id="victoire" class="victoire" hidden>
+        <h3 class="victoire__titre">Félicitations !</h3>
+        <p class="victoire__texte">Grille résolue en <strong id="temps-final" class="victoire__temps">0:00</strong>.</p>
+        <button type="button" id="bouton-rejouer" class="commande commande--principale">Rejouer</button>
       </div>
       <div class="commandes">
         <button type="button" id="bouton-annuler" class="commande">Undo</button>
         <button type="button" id="bouton-reinitialiser" class="commande">Reset</button>
       </div>
-      <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide. Les règles non respectées s'affichent en rouge. « Undo » annule le dernier coup, « Reset » vide la grille.</p>
+      <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide. Les règles non respectées s'affichent en rouge. « Undo » annule le dernier coup, « Reset » vide la grille. Le chronomètre démarre à votre premier coup.</p>
       <p id="annonce-grille" class="visuellement-cache" aria-live="polite"></p>
 
       <!-- Panneau des règles : <details> se déplie et se replie au clic, au toucher ou au clavier (Entrée/Espace), sans JavaScript. -->
@@ -51,6 +66,7 @@
 
   <script src="assets/js/solveur.js"></script>
   <script src="assets/js/grille.js"></script>
+  <script src="assets/js/chrono.js"></script>
   <script src="assets/js/main.js"></script>
 </body>
 </html>

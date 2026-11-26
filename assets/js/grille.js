@@ -329,6 +329,26 @@ var Grille = (function () {
     return partie;
   }
 
+  /*
+   * Crée une nouvelle grille pour « Rejouer », une fois la grille du jour résolue.
+   * Elle est elle aussi entièrement déterminée par la date et son numéro
+   * (1, 2, 3…) : la grille bonus n°1 d'un jour donné est la même pour tout
+   * le monde. Elle est différente de « partieAEviter » (la grille précédente).
+   * Mêmes garanties que la grille du jour : solution unique, résoluble sans deviner.
+   */
+  function creerPartieBonus(date, numero, partieAEviter) {
+    var jour = date || new Date();
+    var cle = cleDuJour(jour);
+    var partie = null;
+    for (var variante = 0; variante < NB_VARIANTES_MAX; variante++) {
+      partie = genererPartie(graineDuJour(cle + "/bonus" + numero, variante));
+      if (!partieAEviter || !partiesIdentiques(partie, partieAEviter)) break;
+    }
+    partie.cle = cle;
+    partie.numeroBonus = numero;
+    return partie;
+  }
+
   /* Valeur suivante d'une case saisie par le joueur : vide → soleil → lune → vide. */
   function valeurSuivante(valeur) {
     if (valeur === VIDE) return SOLEIL;
@@ -504,6 +524,22 @@ var Grille = (function () {
     return resultat;
   }
 
+  /*
+   * Vrai si la grille est résolue : toutes les cases sont remplies et
+   * aucune règle n'est enfreinte (3 soleils et 3 lunes par ligne et par
+   * colonne, jamais 3 symboles identiques côte à côte, signes respectés).
+   * La solution étant unique, c'est alors forcément la solution du jour.
+   */
+  function estResolue(partie, etat) {
+    for (var l = 0; l < partie.taille; l++) {
+      for (var c = 0; c < partie.taille; c++) {
+        if (etat[l][c] === VIDE) return false;
+      }
+    }
+    var v = trouverViolations(partie, etat);
+    return v.nbTriplets === 0 && v.nbExces === 0 && v.nbSignes === 0;
+  }
+
   return {
     TAILLE: TAILLE,
     VIDE: VIDE,
@@ -515,6 +551,8 @@ var Grille = (function () {
     BAS: BAS,
     cleDuJour: cleDuJour,
     creerPartieDuJour: creerPartieDuJour,
+    creerPartieBonus: creerPartieBonus,
+    estResolue: estResolue,
     partiesIdentiques: partiesIdentiques,
     verifierPartie: verifierPartie,
     valeurSuivante: valeurSuivante,

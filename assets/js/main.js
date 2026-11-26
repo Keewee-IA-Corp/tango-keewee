@@ -1,6 +1,6 @@
 /*
  * main.js — Affichage de la grille et saisie du joueur (aucune règle du jeu ici).
- * Dépend de grille.js, chargé avant ce fichier.
+ * Dépend de grille.js et chrono.js, chargés avant ce fichier.
  */
 (function () {
   "use strict";
@@ -157,7 +157,13 @@
     return "Règle non respectée : " + morceaux.join(" ; ") + ".";
   }
 
-  function afficherGrille(conteneur, partie, etat, zoneAnnonce) {
+  /*
+   * Dessine la grille et gère la saisie. « evenements » (facultatif) :
+   *   surCoup()     : appelé à chaque case changée par le joueur (démarre le chronomètre) ;
+   *   surVictoire() : appelé une fois, quand la grille est résolue (la grille est alors verrouillée).
+   */
+  function afficherGrille(conteneur, partie, etat, zoneAnnonce, evenements) {
+    evenements = evenements || {};
     var textesSignes = creerTextesSignes(partie.taille);
     conteneur.textContent = "";
 
@@ -222,10 +228,23 @@
       }
       avaitErreurs = erreurs !== "";
       annoncer(zoneAnnonce, message);
+      verifierVictoire();
+    }
+
+    /* Vrai une fois la grille résolue : plus aucune saisie n'est possible. */
+    var termine = false;
+
+    function verifierVictoire() {
+      if (termine || !Grille.estResolue(partie, etat)) return;
+      termine = true;
+      var boutons = conteneur.querySelectorAll(".case__bouton");
+      for (var i = 0; i < boutons.length; i++) boutons[i].disabled = true;
+      if (evenements.surVictoire) evenements.surVictoire();
     }
 
     /* Un seul écouteur pour toute la grille : clic souris, tap mobile ou Entrée/Espace au clavier. */
-    conteneur.addEventListener("click", function (evenement) {
+    function surClic(evenement) {
+      if (termine) return;
       var bouton = evenement.target.closest ? evenement.target.closest(".case__bouton") : null;
       if (!bouton || !conteneur.contains(bouton)) return;
       var caseCliquee = bouton.parentNode;
@@ -235,13 +254,20 @@
       var nouvelle = Grille.jouerCoup(partie, etat, historique, lc, cc);
       if (nouvelle === null) return; /* case de départ : rien ne change */
 
+      if (evenements.surCoup) evenements.surCoup();
       afficherValeurBouton(bouton, nouvelle);
       terminerChangement("Ligne " + (lc + 1) + ", colonne " + (cc + 1) + " : " + nomSymbole(nouvelle) + ".");
-    });
+    }
+    conteneur.addEventListener("click", surClic);
 
     return {
+      /* Détache la saisie de cette grille (avant d'en afficher une nouvelle dans le même conteneur). */
+      arreter: function () {
+        conteneur.removeEventListener("click", surClic);
+      },
       /* « Undo » : annule le dernier coup joué. */
       annuler: function () {
+        if (termine) return;
         var coup = Grille.annulerCoup(etat, historique);
         if (coup === null) {
           annoncer(zoneAnnonce, "Aucun coup à annuler.");
@@ -254,6 +280,7 @@
       },
       /* « Reset » : vide toutes les cases saisies, seules les cases de départ restent. */
       reinitialiser: function () {
+        if (termine) return;
         Grille.reinitialiser(partie, etat, historique);
         for (var l = 0; l < partie.taille; l++) {
           for (var c = 0; c < partie.taille; c++) rafraichirCase(l, c);
@@ -273,25 +300,121 @@
     return JOURS[date.getDay()] + " " + jour + " " + MOIS[date.getMonth()] + " " + date.getFullYear();
   }
 
+  /*
+   * Affichage du chronomètre (la logique est dans chrono.js).
+   * Il démarre au premier changement de la grille, pas au chargement de la page.
+   */
+  function creerAffichageChrono(chronoEl) {
+    var chrono = Chrono.creer();
+    var minuterie = null;
+
+    function rafraichir() {
+      if (chronoEl) chronoEl.textContent = Chrono.formater(Chrono.secondesEcoulees(chrono, Date.now()));
+    }
+
+    function arreterMinuterie() {
+      if (minuterie !== null) {
+        clearInterval(minuterie);
+        minuterie = null;
+      }
+    }
+
+    return {
+      /* Démarre au premier appel ; les appels suivants sont sans effet. */
+      demarrer: function () {
+        if (Chrono.estDemarre(chrono)) return;
+        Chrono.demarrer(chrono, Date.now());
+        rafraichir();
+        minuterie = setInterval(rafraichir, 250);
+      },
+      /* Arrête le chronomètre et renvoie le temps final, en secondes. */
+      arreter: function () {
+        Chrono.arreter(chrono, Date.now());
+        arreterMinuterie();
+        rafraichir();
+        return Chrono.secondesEcoulees(chrono, Date.now());
+      },
+      /* Remet le chronomètre à zéro (0:00), arrêté jusqu'au prochain changement de la grille. */
+      remettreAZero: function () {
+        arreterMinuterie();
+        chrono = Chrono.creer();
+        rafraichir();
+      }
+    };
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     var conteneur = document.getElementById("grille");
     if (!conteneur) return;
     var aujourdhui = new Date();
-    var partie = Grille.creerPartieDuJour(aujourdhui);
-
-    /* Date de la grille affichée : permet de vérifier qu'on joue la même grille que ses proches. */
+    var zoneAnnonce = document.getElementById("annonce-grille");
     var dateEl = document.getElementById("date-grille");
-    if (dateEl) {
-      dateEl.textContent = "Grille du " + texteDate(aujourdhui);
-      dateEl.setAttribute("datetime", partie.cle);
-    }
-
-    var etat = Grille.creerEtatJeu(partie);
-    var jeu = afficherGrille(conteneur, partie, etat, document.getElementById("annonce-grille"));
-
+    var victoireEl = document.getElementById("victoire");
+    var tempsFinalEl = document.getElementById("temps-final");
+    var boutonRejouer = document.getElementById("bouton-rejouer");
     var boutonAnnuler = document.getElementById("bouton-annuler");
     var boutonReinitialiser = document.getElementById("bouton-reinitialiser");
-    if (boutonAnnuler) boutonAnnuler.addEventListener("click", jeu.annuler);
-    if (boutonReinitialiser) boutonReinitialiser.addEventListener("click", jeu.reinitialiser);
+    var chrono = creerAffichageChrono(document.getElementById("chrono"));
+
+    var partie = null;
+    var jeu = null;
+    var numeroBonus = 0;
+
+    function activerCommandes(actives) {
+      if (boutonAnnuler) boutonAnnuler.disabled = !actives;
+      if (boutonReinitialiser) boutonReinitialiser.disabled = !actives;
+    }
+
+    /* Grille résolue : chronomètre arrêté, message de félicitations avec le temps final. */
+    function afficherVictoire() {
+      var secondes = chrono.arreter();
+      if (tempsFinalEl) tempsFinalEl.textContent = Chrono.formater(secondes);
+      activerCommandes(false);
+      if (victoireEl) victoireEl.hidden = false;
+      annoncer(
+        zoneAnnonce,
+        "Félicitations, grille résolue en " + Chrono.texteDuree(secondes) + " ! Bouton « Rejouer » pour lancer une nouvelle grille."
+      );
+      if (boutonRejouer) boutonRejouer.focus();
+    }
+
+    /* Affiche une partie toute neuve : grille vierge, chronomètre à 0:00, message de victoire masqué. */
+    function lancerPartie(nouvellePartie, libelleDate) {
+      if (jeu) jeu.arreter();
+      partie = nouvellePartie;
+      chrono.remettreAZero();
+      if (victoireEl) victoireEl.hidden = true;
+      activerCommandes(true);
+
+      /* Date de la grille affichée : permet de vérifier qu'on joue la même grille que ses proches. */
+      if (dateEl) {
+        dateEl.textContent = libelleDate;
+        dateEl.setAttribute("datetime", partie.cle);
+      }
+
+      jeu = afficherGrille(conteneur, partie, Grille.creerEtatJeu(partie), zoneAnnonce, {
+        surCoup: chrono.demarrer,
+        surVictoire: afficherVictoire
+      });
+    }
+
+    lancerPartie(Grille.creerPartieDuJour(aujourdhui), "Grille du " + texteDate(aujourdhui));
+
+    if (boutonAnnuler) boutonAnnuler.addEventListener("click", function () { jeu.annuler(); });
+    if (boutonReinitialiser) boutonReinitialiser.addEventListener("click", function () { jeu.reinitialiser(); });
+
+    /* « Rejouer » : nouvelle grille (grille bonus suivante du jour) et chronomètre à zéro. */
+    if (boutonRejouer) {
+      boutonRejouer.addEventListener("click", function () {
+        numeroBonus++;
+        lancerPartie(
+          Grille.creerPartieBonus(aujourdhui, numeroBonus, partie),
+          "Grille bonus n°" + numeroBonus + " du " + texteDate(aujourdhui)
+        );
+        annoncer(zoneAnnonce, "Nouvelle grille lancée. Le chronomètre est à zéro et démarrera à votre premier coup.");
+        var premiereCase = conteneur.querySelector(".case__bouton");
+        if (premiereCase) premiereCase.focus();
+      });
+    }
   });
 })();

@@ -1,5 +1,14 @@
 # Changelog
 
+## TKA-20261126-230511-7 — Chronométrer la partie et afficher la victoire
+
+- Nouveau `assets/js/chrono.js` (logique seule, chargé avant `main.js`) : chronomètre `{ debut, fin }` (`Chrono.creer`, `demarrer`, `arreter`, `secondesEcoulees`), format « m:ss » (`Chrono.formater` : 0:07, 1:23, 10:00) et durée en toutes lettres pour les lecteurs d'écran (`Chrono.texteDuree`).
+- `assets/js/grille.js` (logique seule) : `Grille.estResolue(partie, etat)` (toutes les cases remplies et aucune règle enfreinte) et `Grille.creerPartieBonus(date, numero, partieAEviter)` (nouvelle grille pour « Rejouer », déterminée par la date et son numéro, différente de la précédente, mêmes garanties d'unicité et de résolution logique).
+- `assets/js/main.js` : le chronomètre (icône horloge, 0:00) démarre au premier soleil ou à la première lune posés — pas au chargement — et s'arrête quand la grille est résolue. La grille est alors verrouillée (cases, « Undo » et « Reset » désactivés) et un message « Félicitations ! Grille résolue en m:ss » s'affiche avec un bouton « Rejouer » (qui reçoit le focus) ; la victoire est annoncée dans la zone `aria-live`. « Rejouer » lance une nouvelle grille (« Grille bonus n°1 du … ») et remet le chronomètre à 0:00, en attente du premier coup.
+- `index.html` : chronomètre sous la date de la grille, bloc de félicitations (masqué par défaut), chargement de `chrono.js`, consigne complétée.
+- `assets/css/style.css` : styles du chronomètre (chiffres à largeur fixe), du message de félicitations (variables `--couleur-succes`, `--couleur-succes-fond`, `--couleur-texte-inverse`), du bouton principal « Rejouer » et des boutons désactivés.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-9 — Générer la grille du jour identique pour tous
 
 - `assets/js/grille.js` (logique seule) : la graine de la grille du jour est désormais un hachage FNV-1a 32 bits (calcul entier, identique dans tous les navigateurs) de la date du calendrier « AAAA-MM-JJ » (`Grille.cleDuJour`), au lieu du nombre AAAAMMJJ. Toute la fabrication (`genererPartie`) ne dépend que de cette graine : même jour → exactement la même grille pour tout le monde, sans serveur ni stockage.
