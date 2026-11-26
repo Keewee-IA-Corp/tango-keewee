@@ -283,6 +283,99 @@ var Grille = (function () {
     return etat[l][c];
   }
 
+  /* Case voisine désignée par un signe (à droite ou en dessous). */
+  function caseVoisine(signe) {
+    return {
+      ligne: signe.direction === BAS ? signe.ligne + 1 : signe.ligne,
+      colonne: signe.direction === DROITE ? signe.colonne + 1 : signe.colonne
+    };
+  }
+
+  function tableauBooleens(n) {
+    var t = [];
+    for (var i = 0; i < n; i++) t.push(false);
+    return t;
+  }
+
+  /*
+   * Recherche les règles non respectées dans l'état de jeu actuel
+   * (cases vides ignorées). Renvoie :
+   *   cases    : tableau taille×taille, vrai pour une case en erreur
+   *              (trois symboles identiques côte à côte, ou signe non respecté) ;
+   *   lignes   : vrai pour une ligne qui contient plus de 3 soleils ou plus de 3 lunes ;
+   *   colonnes : idem pour les colonnes ;
+   *   signes   : vrai pour chaque signe de partie.signes non respecté ;
+   *   nbTriplets, nbExces, nbSignes : nombre de violations de chaque sorte.
+   */
+  function trouverViolations(partie, etat) {
+    var taille = partie.taille;
+    var moitie = taille / 2;
+    var resultat = {
+      cases: [],
+      lignes: tableauBooleens(taille),
+      colonnes: tableauBooleens(taille),
+      signes: tableauBooleens((partie.signes || []).length),
+      nbTriplets: 0,
+      nbExces: 0,
+      nbSignes: 0
+    };
+    for (var l0 = 0; l0 < taille; l0++) resultat.cases.push(tableauBooleens(taille));
+
+    /* Trois symboles identiques côte à côte. */
+    for (var a = 0; a < taille; a++) {
+      for (var b = 0; b + 2 < taille; b++) {
+        var v = etat[a][b];
+        if (v !== VIDE && etat[a][b + 1] === v && etat[a][b + 2] === v) {
+          resultat.cases[a][b] = resultat.cases[a][b + 1] = resultat.cases[a][b + 2] = true;
+          resultat.nbTriplets++;
+        }
+        var w = etat[b][a];
+        if (w !== VIDE && etat[b + 1][a] === w && etat[b + 2][a] === w) {
+          resultat.cases[b][a] = resultat.cases[b + 1][a] = resultat.cases[b + 2][a] = true;
+          resultat.nbTriplets++;
+        }
+      }
+    }
+
+    /* Plus de 3 soleils ou plus de 3 lunes dans une ligne ou une colonne. */
+    for (var i = 0; i < taille; i++) {
+      var soleilsL = 0, lunesL = 0, soleilsC = 0, lunesC = 0;
+      for (var j = 0; j < taille; j++) {
+        if (etat[i][j] === SOLEIL) soleilsL++;
+        if (etat[i][j] === LUNE) lunesL++;
+        if (etat[j][i] === SOLEIL) soleilsC++;
+        if (etat[j][i] === LUNE) lunesC++;
+      }
+      if (soleilsL > moitie || lunesL > moitie) {
+        resultat.lignes[i] = true;
+        resultat.nbExces++;
+      }
+      if (soleilsC > moitie || lunesC > moitie) {
+        resultat.colonnes[i] = true;
+        resultat.nbExces++;
+      }
+    }
+
+    /* Signes « = » et « × » non respectés (les deux cases doivent être remplies). */
+    var signes = partie.signes || [];
+    for (var s = 0; s < signes.length; s++) {
+      var signe = signes[s];
+      var voisine = caseVoisine(signe);
+      var va = etat[signe.ligne][signe.colonne];
+      var vb = etat[voisine.ligne][voisine.colonne];
+      if (va === VIDE || vb === VIDE) continue;
+      var enErreur = signe.type === EGAL ? va !== vb : va === vb;
+      if (enErreur) {
+        resultat.signes[s] = true;
+        resultat.cases[signe.ligne][signe.colonne] = true;
+        resultat.cases[voisine.ligne][voisine.colonne] = true;
+        resultat.nbSignes++;
+      }
+    }
+
+    return resultat;
+  }
+
   return {
     TAILLE: TAILLE,
     VIDE: VIDE,
@@ -297,6 +390,7 @@ var Grille = (function () {
     valeurSuivante: valeurSuivante,
     estCaseDepart: estCaseDepart,
     creerEtatJeu: creerEtatJeu,
-    changerCase: changerCase
+    changerCase: changerCase,
+    trouverViolations: trouverViolations
   };
 })();

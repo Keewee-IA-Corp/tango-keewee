@@ -18,6 +18,9 @@
   --couleur-signe: #3d4350;         /* gris foncé des signes = et × */
   --couleur-case-survol: #f0f3f8;   /* case à remplir survolée */
   --couleur-focus: #2f6fd6;         /* contour de focus clavier */
+  --couleur-erreur: #c62828;        /* rouge des règles non respectées */
+  --couleur-erreur-fond: #f9d4d4;   /* fond rouge d'une case en erreur */
+  --couleur-exces-fond: #fdeded;    /* surlignage d'une ligne ou colonne en excès */
 
   /* Espacements et formes */
   --espace-xs: 0.25rem;
@@ -153,6 +156,23 @@ body {
   background: var(--couleur-case-depart);
 }
 
+/* ---------- Signalement des règles non respectées ---------- */
+
+/* Ligne ou colonne avec plus de 3 soleils ou plus de 3 lunes : surlignage rosé. */
+.case--exces {
+  background: var(--couleur-exces-fond);
+  border-color: var(--couleur-erreur);
+  border-style: dashed;
+}
+
+/* Trois symboles identiques côte à côte, ou signe non respecté : case en rouge. */
+.case--erreur {
+  background: var(--couleur-erreur-fond);
+  border-color: var(--couleur-erreur);
+  border-style: solid;
+  box-shadow: inset 0 0 0 2px var(--couleur-erreur);
+}
+
 /* Bouton d'une case à remplir : il occupe toute la case. */
 .case__bouton {
   position: absolute;
@@ -176,6 +196,12 @@ body {
 
 .case__bouton:hover {
   background: var(--couleur-case-survol);
+}
+
+/* Survol d'une case signalée : voile léger, pour que le rouge reste visible (y compris après un tap sur mobile). */
+.case--exces .case__bouton:hover,
+.case--erreur .case__bouton:hover {
+  background: rgba(31, 36, 48, 0.06);
 }
 
 .case__bouton:focus-visible {
@@ -245,6 +271,12 @@ body {
   left: 50%;
   top: calc(100% + 1px + var(--ecart-cases) / 2);
   transform: translate(-50%, -50%);
+}
+
+/* Signe non respecté : pastille rouge, signe en blanc. */
+.signe--erreur {
+  background: var(--couleur-erreur);
+  color: var(--couleur-carte);
 }
 
 /* ---------- Panneau « How to play » ---------- */

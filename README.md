@@ -33,11 +33,16 @@ Les cases de départ ne peuvent pas être modifiées.
 Chaque grille a **une seule solution**, que l'on peut trouver **par la logique, sans jamais deviner**.
 Elle contient toujours au moins une case de départ et au moins un signe « = » ou « × ».
 
-La vérification des contraintes arrivera dans une prochaine version.
+Les règles non respectées sont signalées en direct, à chaque saisie :
+- **trois symboles identiques côte à côte** (ligne ou colonne) : les trois cases s'affichent en rouge ;
+- **plus de trois soleils ou plus de trois lunes** dans une ligne ou une colonne (même incomplète) : toute la ligne ou colonne est surlignée (fond rosé, bordure rouge en pointillés) ;
+- **signe « = » ou « × » non respecté** (les deux cases étant remplies) : le signe passe en rouge et les deux cases aussi.
+
+Dès que l'erreur est corrigée, le signalement disparaît. Les lecteurs d'écran annoncent aussi les règles non respectées après chaque saisie.
 
 ## Organisation du code
 
 - `assets/js/solveur.js` : solveur (résolution logique pas à pas avec la règle qui justifie chaque case, et comptage exhaustif des solutions).
-- `assets/js/grille.js` : logique (génération de la grille du jour, garantie d'unicité et de résolution logique, état de la partie, changement d'une case).
+- `assets/js/grille.js` : logique (génération de la grille du jour, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, recherche des règles non respectées).
 - `assets/js/main.js` : affichage de la grille et saisie du joueur.
 - `assets/css/style.css` : styles.

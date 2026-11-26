@@ -1,5 +1,13 @@
 # Changelog
 
+## TKA-20261126-230511-4 — Signaler en direct les violations de règle
+
+- `assets/js/grille.js` : nouvelle fonction `Grille.trouverViolations(partie, etat)` (logique seule) qui repère dans l'état de jeu les trois symboles identiques côte à côte, les lignes et colonnes avec plus de 3 soleils ou plus de 3 lunes, et les signes « = » / « × » non respectés (cases vides ignorées).
+- `assets/js/main.js` : après chaque saisie, tous les signalements sont recalculés (`afficherViolations`) : cases en rouge (`case--erreur`), lignes/colonnes en excès surlignées (`case--exces`), signes non respectés en rouge (`signe--erreur`). Une erreur corrigée n'est donc plus signalée. Les cases signalées ont « règle non respectée » dans leur `aria-label`, et la zone `aria-live` annonce les règles non respectées (puis « Plus aucune règle non respectée » une fois corrigées).
+- `assets/css/style.css` : variables `--couleur-erreur`, `--couleur-erreur-fond`, `--couleur-exces-fond` et styles des signalements ; survol d'une case signalée en voile léger pour que le rouge reste visible.
+- `index.html` : consigne complétée (« Les règles non respectées s'affichent en rouge »).
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-11 — Afficher le panneau « How to play »
 
 - `index.html` : panneau dépliable « How to play » sous la grille et sa consigne (élément natif `<details>`/`<summary>` : se déplie et se replie au clic, au toucher ou au clavier, état annoncé par les lecteurs d'écran, sans JavaScript). Il rappelle les règles : trois soleils et trois lunes par ligne et colonne, pas plus de deux symboles identiques côte à côte, signification des signes « = » et « × ». Replié par défaut.

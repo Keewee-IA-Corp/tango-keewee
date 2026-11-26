@@ -42,9 +42,10 @@
    * une case et sa voisine (à droite ou en dessous). Purement visuel :
    * il est décrit dans l'aria-label des cases et ne capte pas les clics.
    */
-  function creerSigne(signe) {
+  function creerSigne(signe, index) {
     var el = document.createElement("span");
     el.className = "signe signe--" + signe.direction;
+    el.dataset.index = String(index);
     el.setAttribute("aria-hidden", "true");
     el.textContent = signe.type === Grille.EGAL ? "=" : "×";
     return el;
@@ -66,11 +67,12 @@
   }
 
   /* Texte lu par les lecteurs d'écran pour une case. */
-  function libelleCase(l, c, valeur, depart, textesSignes) {
+  function libelleCase(l, c, valeur, depart, textesSignes, enErreur) {
     var texte = "Ligne " + (l + 1) + ", colonne " + (c + 1) + " : " + nomSymbole(valeur);
     if (depart) texte += " (case de départ)";
     var signes = textesSignes[l][c];
     for (var i = 0; i < signes.length; i++) texte += ", " + signes[i];
+    if (enErreur) texte += ", règle non respectée";
     return texte;
   }
 
@@ -84,14 +86,14 @@
   }
 
   /* Ajoute un signe à la grille affichée et mémorise sa description pour les deux cases. */
-  function afficherSigne(conteneur, signe, textesSignes) {
+  function afficherSigne(conteneur, signe, index, textesSignes) {
     var l2 = signe.direction === Grille.BAS ? signe.ligne + 1 : signe.ligne;
     var c2 = signe.direction === Grille.DROITE ? signe.colonne + 1 : signe.colonne;
     var caseA = trouverCase(conteneur, signe.ligne, signe.colonne);
     var caseB = trouverCase(conteneur, l2, c2);
     if (!caseA || !caseB) return;
 
-    caseA.appendChild(creerSigne(signe));
+    caseA.appendChild(creerSigne(signe, index));
 
     var versB = signe.direction === Grille.DROITE ? "la case à droite" : "la case en dessous";
     var versA = signe.direction === Grille.DROITE ? "la case à gauche" : "la case au-dessus";
@@ -108,6 +110,51 @@
 
   function annoncer(zone, texte) {
     if (zone) zone.textContent = texte;
+  }
+
+  /*
+   * Signale en direct les règles non respectées (calculées par Grille.trouverViolations) :
+   *   - case--erreur : case en rouge (trois symboles identiques côte à côte, ou signe non respecté) ;
+   *   - case--exces  : case d'une ligne ou d'une colonne qui a plus de 3 soleils ou de 3 lunes (surlignage) ;
+   *   - signe--erreur : signe « = » ou « × » non respecté, en rouge.
+   * Tous les signalements sont recalculés à chaque fois : une erreur corrigée disparaît.
+   * Met aussi à jour les libellés accessibles des cases. Renvoie les violations trouvées.
+   */
+  function afficherViolations(conteneur, partie, etat, textesSignes) {
+    var violations = Grille.trouverViolations(partie, etat);
+
+    for (var l = 0; l < partie.taille; l++) {
+      for (var c = 0; c < partie.taille; c++) {
+        var caseEl = trouverCase(conteneur, l, c);
+        if (!caseEl) continue;
+        var enErreur = violations.cases[l][c];
+        var enExces = violations.lignes[l] || violations.colonnes[c];
+        caseEl.classList.toggle("case--erreur", enErreur);
+        caseEl.classList.toggle("case--exces", enExces);
+        elementLibelle(caseEl).setAttribute(
+          "aria-label",
+          libelleCase(l, c, etat[l][c], Grille.estCaseDepart(partie, l, c), textesSignes, enErreur || enExces)
+        );
+      }
+    }
+
+    var signesEl = conteneur.querySelectorAll(".signe");
+    for (var s = 0; s < signesEl.length; s++) {
+      var index = Number(signesEl[s].dataset.index);
+      signesEl[s].classList.toggle("signe--erreur", violations.signes[index] === true);
+    }
+
+    return violations;
+  }
+
+  /* Phrase qui résume les règles non respectées, pour la zone aria-live. */
+  function texteViolations(violations) {
+    var morceaux = [];
+    if (violations.nbTriplets > 0) morceaux.push("trois symboles identiques côte à côte");
+    if (violations.nbExces > 0) morceaux.push("plus de trois soleils ou de trois lunes dans une ligne ou une colonne");
+    if (violations.nbSignes > 0) morceaux.push("signe égal ou opposé non respecté");
+    if (morceaux.length === 0) return "";
+    return "Règle non respectée : " + morceaux.join(" ; ") + ".";
   }
 
   function afficherGrille(conteneur, partie, etat, zoneAnnonce) {
@@ -145,19 +192,14 @@
 
     var signes = partie.signes || [];
     for (var s = 0; s < signes.length; s++) {
-      afficherSigne(conteneur, signes[s], textesSignes);
+      afficherSigne(conteneur, signes[s], s, textesSignes);
     }
 
-    /* Libellés accessibles, une fois les signes connus. */
-    for (var l3 = 0; l3 < partie.taille; l3++) {
-      for (var c3 = 0; c3 < partie.taille; c3++) {
-        var el = trouverCase(conteneur, l3, c3);
-        elementLibelle(el).setAttribute(
-          "aria-label",
-          libelleCase(l3, c3, etat[l3][c3], Grille.estCaseDepart(partie, l3, c3), textesSignes)
-        );
-      }
-    }
+    /* Signalements et libellés accessibles, une fois les signes connus. */
+    afficherViolations(conteneur, partie, etat, textesSignes);
+
+    /* Vrai si des règles étaient non respectées avant la dernière saisie. */
+    var avaitErreurs = false;
 
     /* Un seul écouteur pour toute la grille : clic souris, tap mobile ou Entrée/Espace au clavier. */
     conteneur.addEventListener("click", function (evenement) {
@@ -171,9 +213,16 @@
       if (nouvelle === null) return; /* case de départ : rien ne change */
 
       afficherValeurBouton(bouton, nouvelle);
-      var libelle = libelleCase(lc, cc, nouvelle, false, textesSignes);
-      bouton.setAttribute("aria-label", libelle);
-      annoncer(zoneAnnonce, "Ligne " + (lc + 1) + ", colonne " + (cc + 1) + " : " + nomSymbole(nouvelle));
+      var violations = afficherViolations(conteneur, partie, etat, textesSignes);
+      var message = "Ligne " + (lc + 1) + ", colonne " + (cc + 1) + " : " + nomSymbole(nouvelle) + ".";
+      var erreurs = texteViolations(violations);
+      if (erreurs) {
+        message += " " + erreurs;
+      } else if (avaitErreurs) {
+        message += " Plus aucune règle non respectée.";
+      }
+      avaitErreurs = erreurs !== "";
+      annoncer(zoneAnnonce, message);
     });
   }
 
