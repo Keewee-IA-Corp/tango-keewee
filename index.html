@@ -39,8 +39,11 @@
       <div class="commandes">
         <button type="button" id="bouton-annuler" class="commande">Undo</button>
         <button type="button" id="bouton-reinitialiser" class="commande">Reset</button>
+        <button type="button" id="bouton-indice" class="commande">Hint</button>
       </div>
-      <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide. Les règles non respectées s'affichent en rouge. « Undo » annule le dernier coup, « Reset » vide la grille. Le chronomètre démarre à votre premier coup.</p>
+      <!-- Résultat du bouton « Hint », affiché par assets/js/main.js (annoncé aussi dans la zone aria-live ci-dessous). -->
+      <p id="message-indice" class="message-indice" hidden></p>
+      <p class="consigne">Touchez une case vide : soleil, puis lune, puis de nouveau vide. Les règles non respectées s'affichent en rouge. « Undo » annule le dernier coup, « Reset » vide la grille, « Hint » signale une case erronée ou remplit une case qui se déduit. Le chronomètre démarre à votre premier coup.</p>
       <p id="annonce-grille" class="visuellement-cache" aria-live="polite"></p>
 
       <!-- Panneau des règles : <details> se déplie et se replie au clic, au toucher ou au clavier (Entrée/Espace), sans JavaScript. -->

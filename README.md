@@ -33,6 +33,11 @@ Les cases de départ ne peuvent pas être modifiées.
 Sous la grille :
 - **« Undo »** annule le dernier coup (la case retrouve son contenu précédent) ; cliquez plusieurs fois pour annuler les coups un par un, du plus récent au plus ancien ;
 - **« Reset »** vide toutes les cases que vous avez remplies : seules les cases de départ restent. L'historique des coups est alors effacé (un « Reset » ne peut pas être annulé).
+- **« Hint »** vous aide sans dévoiler toute la solution :
+  - si une case que vous avez remplie est fausse, elle est **signalée comme erronée** (fond rouge, contour épais) ;
+  - sinon, une case vide qui se **déduit logiquement** de la grille actuelle est remplie avec le bon symbole (contour violet), et la règle qui la justifie est expliquée ; ce coup peut être annulé avec « Undo » ;
+  - s'il n'y a ni erreur ni case déductible, un message l'indique et la grille n'est pas modifiée.
+  Le message de l'indice s'affiche sous les boutons et disparaît au coup suivant. Aucune pénalité de temps n'est appliquée.
 
 Chaque grille a **une seule solution**, que l'on peut trouver **par la logique, sans jamais deviner**.
 Elle contient toujours au moins une case de départ et au moins un signe « = » ou « × ».
@@ -54,7 +59,7 @@ Dès que l'erreur est corrigée, le signalement disparaît. Les lecteurs d'écra
 ## Organisation du code
 
 - `assets/js/solveur.js` : solveur (résolution logique pas à pas avec la règle qui justifie chaque case, et comptage exhaustif des solutions).
-- `assets/js/grille.js` : logique (génération de la grille du jour à partir d'une graine tirée de la date, comparaison avec la grille de la veille, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées, détection de la grille résolue, grilles bonus pour « Rejouer »).
+- `assets/js/grille.js` : logique (génération de la grille du jour à partir d'une graine tirée de la date, comparaison avec la grille de la veille, garantie d'unicité et de résolution logique, état de la partie, changement d'une case, historique des coups pour « Undo » et « Reset », recherche des règles non respectées, indice pour « Hint », détection de la grille résolue, grilles bonus pour « Rejouer »).
 - `assets/js/chrono.js` : logique du chronomètre (démarrage, arrêt, temps écoulé, format m:ss).
 - `assets/js/main.js` : affichage de la grille, du chronomètre et du message de félicitations, saisie du joueur.
 - `assets/css/style.css` : styles.

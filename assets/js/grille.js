@@ -431,6 +431,44 @@ var Grille = (function () {
     return nbVidees;
   }
 
+  /*
+   * Indice (bouton « Hint »), sans rien modifier :
+   *   1. si une case remplie par le joueur ne correspond pas à la solution,
+   *      renvoie { type: "erreur", ligne, colonne } (la première trouvée) ;
+   *   2. sinon, si une case vide se déduit logiquement de la grille actuelle
+   *      (Solveur.prochaineDeduction), renvoie
+   *      { type: "deduction", ligne, colonne, valeur, regle } ;
+   *   3. sinon, renvoie { type: "aucun" }.
+   * Seules des déductions logiques sont proposées : jamais la solution complète.
+   */
+  function demanderIndice(partie, etat) {
+    for (var l = 0; l < partie.taille; l++) {
+      for (var c = 0; c < partie.taille; c++) {
+        if (etat[l][c] !== VIDE && etat[l][c] !== partie.solution[l][c]) {
+          return { type: "erreur", ligne: l, colonne: c };
+        }
+      }
+    }
+    var d = Solveur.prochaineDeduction(partie.taille, etat, partie.signes || []);
+    /* Sans erreur dans la grille, une déduction est forcément juste ; contrôle par sécurité. */
+    if (d && etat[d.ligne][d.colonne] === VIDE && d.valeur === partie.solution[d.ligne][d.colonne]) {
+      return { type: "deduction", ligne: d.ligne, colonne: d.colonne, valeur: d.valeur, regle: d.regle };
+    }
+    return { type: "aucun" };
+  }
+
+  /*
+   * Pose le symbole d'un indice en (l, c) et l'enregistre dans l'historique
+   * (il peut donc être annulé par « Undo »). Renvoie la valeur posée, ou null
+   * pour une case de départ.
+   */
+  function poserIndice(partie, etat, historique, l, c, valeur) {
+    if (estCaseDepart(partie, l, c)) return null;
+    historique.push({ ligne: l, colonne: c, avant: etat[l][c] });
+    etat[l][c] = valeur;
+    return valeur;
+  }
+
   /* Case voisine désignée par un signe (à droite ou en dessous). */
   function caseVoisine(signe) {
     return {
@@ -563,6 +601,8 @@ var Grille = (function () {
     jouerCoup: jouerCoup,
     annulerCoup: annulerCoup,
     reinitialiser: reinitialiser,
+    demanderIndice: demanderIndice,
+    poserIndice: poserIndice,
     trouverViolations: trouverViolations
   };
 })();

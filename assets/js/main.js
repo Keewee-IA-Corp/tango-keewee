@@ -1,6 +1,6 @@
 /*
  * main.js — Affichage de la grille et saisie du joueur (aucune règle du jeu ici).
- * Dépend de grille.js et chrono.js, chargés avant ce fichier.
+ * Dépend de solveur.js (explication des indices), grille.js et chrono.js, chargés avant ce fichier.
  */
 (function () {
   "use strict";
@@ -161,9 +161,14 @@
    * Dessine la grille et gère la saisie. « evenements » (facultatif) :
    *   surCoup()     : appelé à chaque case changée par le joueur (démarre le chronomètre) ;
    *   surVictoire() : appelé une fois, quand la grille est résolue (la grille est alors verrouillée).
+   * « messageIndice » (facultatif) : paragraphe visible où s'affiche le résultat du bouton « Hint ».
    */
-  function afficherGrille(conteneur, partie, etat, zoneAnnonce, evenements) {
+  function afficherGrille(conteneur, partie, etat, zoneAnnonce, evenements, messageIndice) {
     evenements = evenements || {};
+    if (messageIndice) {
+      messageIndice.textContent = "";
+      messageIndice.hidden = true;
+    }
     var textesSignes = creerTextesSignes(partie.taille);
     conteneur.textContent = "";
 
@@ -217,8 +222,38 @@
       if (bouton) afficherValeurBouton(bouton, etat[l][c]);
     }
 
+    /*
+     * Marque laissée par le dernier indice (« Hint ») sur une case :
+     * case--indice-erreur (case erronée) ou case--indice (case remplie par l'indice).
+     * Elle disparaît, avec le message de l'indice, au changement suivant de la grille.
+     */
+    function effacerMarqueIndice() {
+      var marquees = conteneur.querySelectorAll(".case--indice-erreur, .case--indice");
+      for (var i = 0; i < marquees.length; i++) {
+        marquees[i].classList.remove("case--indice-erreur", "case--indice");
+      }
+      afficherMessageIndice("");
+    }
+
+    /* « marque » : { ligne, colonne, type } renvoyé par Grille.demanderIndice. */
+    function appliquerMarqueIndice(marque) {
+      var caseEl = trouverCase(conteneur, marque.ligne, marque.colonne);
+      if (!caseEl) return;
+      caseEl.classList.add(marque.type === "erreur" ? "case--indice-erreur" : "case--indice");
+      var cible = elementLibelle(caseEl);
+      var precision = marque.type === "erreur" ? ", signalée erronée par l'indice" : ", remplie par l'indice";
+      cible.setAttribute("aria-label", cible.getAttribute("aria-label") + precision);
+    }
+
+    function afficherMessageIndice(texte) {
+      if (!messageIndice) return;
+      messageIndice.textContent = texte;
+      messageIndice.hidden = texte === "";
+    }
+
     /* Recalcule les signalements et annonce le message, complété par l'état des règles. */
     function terminerChangement(message) {
+      effacerMarqueIndice();
       var violations = afficherViolations(conteneur, partie, etat, textesSignes);
       var erreurs = texteViolations(violations);
       if (erreurs) {
@@ -277,6 +312,36 @@
         terminerChangement(
           "Coup annulé. Ligne " + (coup.ligne + 1) + ", colonne " + (coup.colonne + 1) + " : " + nomSymbole(coup.valeur) + "."
         );
+      },
+      /*
+       * « Hint » : signale une case erronée, sinon remplit une case qui se déduit
+       * logiquement, sinon indique qu'il n'y a ni l'un ni l'autre (grille inchangée).
+       */
+      indice: function () {
+        if (termine) return;
+        var indice = Grille.demanderIndice(partie, etat);
+        var position = "ligne " + (indice.ligne + 1) + ", colonne " + (indice.colonne + 1);
+        var message;
+
+        if (indice.type === "erreur") {
+          effacerMarqueIndice();
+          message = "Indice : la case " + position + " est erronée. Changez son symbole.";
+          appliquerMarqueIndice(indice);
+        } else if (indice.type === "deduction") {
+          Grille.poserIndice(partie, etat, historique, indice.ligne, indice.colonne, indice.valeur);
+          if (evenements.surCoup) evenements.surCoup();
+          rafraichirCase(indice.ligne, indice.colonne);
+          message = "Indice : " + position + " : " + nomSymbole(indice.valeur) + ". " + (Solveur.REGLES[indice.regle] || "");
+          terminerChangement(message);
+          if (termine) return; /* dernière case : le message de victoire prend le relais */
+          appliquerMarqueIndice(indice);
+        } else {
+          effacerMarqueIndice();
+          message = "Indice : aucune case ne peut être déduite pour l'instant, et aucune erreur n'a été trouvée.";
+        }
+
+        afficherMessageIndice(message);
+        annoncer(zoneAnnonce, message);
       },
       /* « Reset » : vide toutes les cases saisies, seules les cases de départ restent. */
       reinitialiser: function () {
@@ -354,6 +419,8 @@
     var boutonRejouer = document.getElementById("bouton-rejouer");
     var boutonAnnuler = document.getElementById("bouton-annuler");
     var boutonReinitialiser = document.getElementById("bouton-reinitialiser");
+    var boutonIndice = document.getElementById("bouton-indice");
+    var messageIndice = document.getElementById("message-indice");
     var chrono = creerAffichageChrono(document.getElementById("chrono"));
 
     var partie = null;
@@ -363,6 +430,7 @@
     function activerCommandes(actives) {
       if (boutonAnnuler) boutonAnnuler.disabled = !actives;
       if (boutonReinitialiser) boutonReinitialiser.disabled = !actives;
+      if (boutonIndice) boutonIndice.disabled = !actives;
     }
 
     /* Grille résolue : chronomètre arrêté, message de félicitations avec le temps final. */
@@ -395,13 +463,14 @@
       jeu = afficherGrille(conteneur, partie, Grille.creerEtatJeu(partie), zoneAnnonce, {
         surCoup: chrono.demarrer,
         surVictoire: afficherVictoire
-      });
+      }, messageIndice);
     }
 
     lancerPartie(Grille.creerPartieDuJour(aujourdhui), "Grille du " + texteDate(aujourdhui));
 
     if (boutonAnnuler) boutonAnnuler.addEventListener("click", function () { jeu.annuler(); });
     if (boutonReinitialiser) boutonReinitialiser.addEventListener("click", function () { jeu.reinitialiser(); });
+    if (boutonIndice) boutonIndice.addEventListener("click", function () { jeu.indice(); });
 
     /* « Rejouer » : nouvelle grille (grille bonus suivante du jour) et chronomètre à zéro. */
     if (boutonRejouer) {

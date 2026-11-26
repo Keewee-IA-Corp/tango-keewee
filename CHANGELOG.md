@@ -1,5 +1,13 @@
 # Changelog
 
+## TKA-20261126-230511-5 — Donner un indice ou signaler une erreur (bouton « Hint »)
+
+- `assets/js/grille.js` (logique seule) : `Grille.demanderIndice(partie, etat)` renvoie, sans rien modifier, la première case remplie qui ne correspond pas à la solution (`erreur`), sinon la prochaine déduction logique de `Solveur.prochaineDeduction` sur la grille actuelle (`deduction`, avec la règle qui la justifie), sinon `aucun`. `Grille.poserIndice` pose le symbole déduit et l'enregistre dans l'historique (annulable avec « Undo »).
+- `assets/js/main.js` : bouton « Hint » branché sur la grille. Case erronée signalée (`case--indice-erreur`), case déduite remplie et mise en évidence (`case--indice`) avec l'explication de la règle (`Solveur.REGLES`), ou message « aucune case ne peut être déduite… » sans modifier la grille. Le message est affiché sous les boutons, annoncé dans la zone `aria-live` et précisé dans l'`aria-label` de la case ; il disparaît au changement suivant. Un indice qui remplit une case démarre le chronomètre comme un coup ; le bouton est désactivé une fois la grille résolue.
+- `index.html` : bouton « Hint » à côté de « Undo » et « Reset », zone de message de l'indice, consigne complétée.
+- `assets/css/style.css` : variables `--couleur-indice`, `--couleur-indice-fond`, styles des cases marquées par l'indice et du message.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-7 — Chronométrer la partie et afficher la victoire
 
 - Nouveau `assets/js/chrono.js` (logique seule, chargé avant `main.js`) : chronomètre `{ debut, fin }` (`Chrono.creer`, `demarrer`, `arreter`, `secondesEcoulees`), format « m:ss » (`Chrono.formater` : 0:07, 1:23, 10:00) et durée en toutes lettres pour les lecteurs d'écran (`Chrono.texteDuree`).
