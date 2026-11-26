@@ -12,6 +12,9 @@
  *
  * La grille du jour est générée à partir de la date : même graine,
  * donc même grille pour tout le monde le même jour.
+ *
+ * Chaque grille générée admet une seule solution et se résout par la
+ * logique, sans deviner (voir fabriquerEnigme et solveur.js, chargé avant).
  */
 var Grille = (function () {
   "use strict";
@@ -20,8 +23,10 @@ var Grille = (function () {
   var VIDE = 0;
   var SOLEIL = 1;
   var LUNE = 2;
-  var NB_CASES_DEPART = 10;
-  var NB_SIGNES = 8;
+  /* Signes candidats au départ de la fabrication ; les signes inutiles sont ensuite retirés. */
+  var NB_SIGNES = 12;
+  /* Nombre maximal de tentatives de fabrication d'une grille conforme. */
+  var NB_ESSAIS_MAX = 5;
 
   /* Signes entre cases voisines. */
   var EGAL = "egal";
@@ -98,19 +103,93 @@ var Grille = (function () {
     return false;
   }
 
-  /* Choisit les cases de départ révélées à partir de la solution. */
-  function choisirCasesDepart(solution, aleatoire) {
+  function copierGrille(g) {
+    var copie = [];
+    for (var l = 0; l < g.length; l++) copie.push(g[l].slice());
+    return copie;
+  }
+
+  function compterCasesRemplies(g) {
+    var n = 0;
+    for (var l = 0; l < g.length; l++) {
+      for (var c = 0; c < g[l].length; c++) {
+        if (g[l][c] !== VIDE) n++;
+      }
+    }
+    return n;
+  }
+
+  /* Vrai si la grille se résout entièrement par déductions logiques (sans deviner). */
+  function resolubleSansDeviner(depart, signes) {
+    return Solveur.resoudreLogiquement(TAILLE, depart, signes).resolue;
+  }
+
+  /*
+   * Fabrique l'énigme à partir de la solution :
+   *   1. on part de la grille entièrement révélée et de NB_SIGNES signes candidats ;
+   *   2. on retire une à une les cases de départ (dans un ordre aléatoire),
+   *      puis les signes, en n'acceptant un retrait que si la grille reste
+   *      résoluble par la seule logique (Solveur.resoudreLogiquement) ;
+   *   3. on garde toujours au moins une case de départ et au moins un signe.
+   * Les déductions logiques étant toutes certaines, une grille résoluble
+   * ainsi n'admet qu'une solution ; c'est vérifié en plus par recherche
+   * exhaustive (Solveur.compterSolutions).
+   */
+  function fabriquerEnigme(solution, aleatoire) {
+    var depart = copierGrille(solution);
+    var signes = choisirSignes(solution, aleatoire);
+
     var indices = [];
     for (var i = 0; i < TAILLE * TAILLE; i++) indices.push(i);
     melanger(indices, aleatoire);
 
-    var depart = grilleVide();
-    for (var k = 0; k < NB_CASES_DEPART; k++) {
+    for (var k = 0; k < indices.length; k++) {
+      if (compterCasesRemplies(depart) <= 1) break;
       var l = Math.floor(indices[k] / TAILLE);
       var c = indices[k] % TAILLE;
-      depart[l][c] = solution[l][c];
+      var valeur = depart[l][c];
+      depart[l][c] = VIDE;
+      if (!resolubleSansDeviner(depart, signes)) depart[l][c] = valeur;
     }
-    return depart;
+
+    var ordreSignes = melanger(signes.slice(), aleatoire);
+    for (var s = 0; s < ordreSignes.length; s++) {
+      if (signes.length <= 1) break;
+      var essai = signes.filter(function (signe) {
+        return signe !== ordreSignes[s];
+      });
+      if (resolubleSansDeviner(depart, essai)) signes = essai;
+    }
+
+    return { depart: depart, signes: signes };
+  }
+
+  /*
+   * Contrôle complet d'une partie (critères de la user story) :
+   * une seule solution, résoluble sans deviner, au moins une case de départ
+   * et au moins un signe.
+   */
+  function verifierPartie(partie) {
+    var logique = Solveur.resoudreLogiquement(partie.taille, partie.depart, partie.signes);
+    var nbSolutions = Solveur.compterSolutions(partie.taille, partie.depart, partie.signes, 2);
+    var identique = true;
+    for (var l = 0; l < partie.taille; l++) {
+      for (var c = 0; c < partie.taille; c++) {
+        if (logique.grille[l][c] !== partie.solution[l][c]) identique = false;
+      }
+    }
+    return {
+      solutionUnique: nbSolutions === 1,
+      resolubleSansDeviner: logique.resolue && identique,
+      aCaseDepart: compterCasesRemplies(partie.depart) >= 1,
+      aSigne: partie.signes.length >= 1,
+      etapes: logique.etapes
+    };
+  }
+
+  function partieConforme(partie) {
+    var v = verifierPartie(partie);
+    return v.solutionUnique && v.resolubleSansDeviner && v.aCaseDepart && v.aSigne;
   }
 
   /*
@@ -149,15 +228,25 @@ var Grille = (function () {
    */
   function creerPartieDuJour(date) {
     var aleatoire = creerAleatoire(graineDuJour(date || new Date()));
-    var solution = grilleVide();
-    remplir(solution, 0, aleatoire);
-    var depart = choisirCasesDepart(solution, aleatoire);
-    return {
-      taille: TAILLE,
-      solution: solution,
-      depart: depart,
-      signes: choisirSignes(solution, aleatoire)
-    };
+    var partie = null;
+    for (var essai = 0; essai < NB_ESSAIS_MAX; essai++) {
+      var solution = grilleVide();
+      remplir(solution, 0, aleatoire);
+      var enigme = fabriquerEnigme(solution, aleatoire);
+      partie = {
+        taille: TAILLE,
+        solution: solution,
+        depart: enigme.depart,
+        signes: enigme.signes
+      };
+      if (partieConforme(partie)) return partie;
+    }
+    /*
+     * Filet de sécurité (ne devrait jamais servir) : grille entièrement
+     * révélée, donc forcément unique et sans supposition.
+     */
+    partie.depart = copierGrille(partie.solution);
+    return partie;
   }
 
   /* Valeur suivante d'une case saisie par le joueur : vide → soleil → lune → vide. */
@@ -204,6 +293,7 @@ var Grille = (function () {
     DROITE: DROITE,
     BAS: BAS,
     creerPartieDuJour: creerPartieDuJour,
+    verifierPartie: verifierPartie,
     valeurSuivante: valeurSuivante,
     estCaseDepart: estCaseDepart,
     creerEtatJeu: creerEtatJeu,

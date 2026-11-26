@@ -1,5 +1,16 @@
 # Changelog
 
+## TKA-20261126-230511-8 — Garantir une solution unique et une logique résoluble
+
+- Nouveau `assets/js/solveur.js` (logique seule, chargé avant `grille.js`) :
+  - `resoudreLogiquement` : résolution pas à pas, uniquement par règles logiques sur une ligne ou une colonne (signes « = »/« × » avec une case connue, paire, sandwich, paire « = » qui touche un symbole, comptage tenant compte des paires « × » et « = »), sans supposition ni retour en arrière ; chaque case posée est accompagnée de la règle qui la justifie (`Solveur.REGLES`) ;
+  - `compterSolutions` : recherche exhaustive qui compte les solutions respectant toutes les règles (arrêt à 2) ;
+  - `prochaineDeduction` : première déduction logique possible (réutilisable pour l'indice).
+- `assets/js/grille.js` : la grille du jour n'a plus un nombre fixe de cases de départ et de signes. On part de la solution entièrement révélée et de 12 signes candidats, puis on retire cases et signes un à un tant que la grille reste résoluble par la seule logique ; il reste toujours au moins une case de départ et au moins un signe. La partie est ensuite contrôlée (`Grille.verifierPartie`) : solution unique, résoluble sans deviner, au moins une case de départ et un signe.
+- `index.html` : chargement de `solveur.js`.
+- La grille d'une date donnée est différente de celle des versions précédentes (nouvelle méthode de fabrication), mais reste la même pour tout le monde le même jour.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511-3 — Saisir un soleil ou une lune dans une case vide
 
 - `assets/js/grille.js` : état de jeu séparé de la grille de départ (`creerEtatJeu`), cycle d'une case vide → soleil → lune → vide (`valeurSuivante`, `changerCase`) ; les cases de départ ne sont jamais modifiées (`changerCase` renvoie `null`).
