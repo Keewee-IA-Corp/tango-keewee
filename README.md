@@ -20,9 +20,11 @@ Les cases au fond gris sont les **cases de départ** : elles sont déjà remplie
 
 Règles de la grille :
 - chaque ligne et chaque colonne contient 3 soleils et 3 lunes ;
-- jamais plus de 2 symboles identiques côte à côte.
+- jamais plus de 2 symboles identiques côte à côte ;
+- un signe « = » entre deux cases voisines indique qu'elles portent le même symbole ;
+- un signe « × » entre deux cases voisines indique qu'elles portent des symboles différents.
 
-La saisie des cases et les signes « = » / « × » arriveront dans les prochaines versions.
+La saisie des cases et la vérification des contraintes arriveront dans les prochaines versions.
 
 ## Organisation du code
 

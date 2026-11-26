@@ -21,6 +21,13 @@ var Grille = (function () {
   var SOLEIL = 1;
   var LUNE = 2;
   var NB_CASES_DEPART = 10;
+  var NB_SIGNES = 8;
+
+  /* Signes entre cases voisines. */
+  var EGAL = "egal";
+  var OPPOSE = "oppose";
+  var DROITE = "droite";
+  var BAS = "bas";
 
   /* Générateur pseudo-aléatoire déterministe (mulberry32). */
   function creerAleatoire(graine) {
@@ -107,18 +114,49 @@ var Grille = (function () {
   }
 
   /*
+   * Choisit des signes entre cases voisines, cohérents avec la solution :
+   *   « = »  (EGAL)   : les deux cases portent le même symbole ;
+   *   « × »  (OPPOSE) : les deux cases portent des symboles différents.
+   * Chaque signe : { ligne, colonne, direction, type } où « direction »
+   * vaut DROITE (case voisine à droite) ou BAS (case voisine en dessous).
+   */
+  function choisirSignes(solution, aleatoire) {
+    var paires = [];
+    for (var l = 0; l < TAILLE; l++) {
+      for (var c = 0; c < TAILLE; c++) {
+        if (c < TAILLE - 1) paires.push({ ligne: l, colonne: c, direction: DROITE });
+        if (l < TAILLE - 1) paires.push({ ligne: l, colonne: c, direction: BAS });
+      }
+    }
+    melanger(paires, aleatoire);
+
+    var signes = [];
+    for (var k = 0; k < NB_SIGNES && k < paires.length; k++) {
+      var p = paires[k];
+      var l2 = p.direction === BAS ? p.ligne + 1 : p.ligne;
+      var c2 = p.direction === DROITE ? p.colonne + 1 : p.colonne;
+      p.type = solution[p.ligne][p.colonne] === solution[l2][c2] ? EGAL : OPPOSE;
+      signes.push(p);
+    }
+    return signes;
+  }
+
+  /*
    * Crée la partie du jour.
-   * Renvoie { taille, solution, depart } où « depart » ne contient
-   * que les cases de départ (les autres valent VIDE).
+   * Renvoie { taille, solution, depart, signes } où « depart » ne contient
+   * que les cases de départ (les autres valent VIDE) et « signes » la liste
+   * des contraintes « = » / « × » entre cases voisines.
    */
   function creerPartieDuJour(date) {
     var aleatoire = creerAleatoire(graineDuJour(date || new Date()));
     var solution = grilleVide();
     remplir(solution, 0, aleatoire);
+    var depart = choisirCasesDepart(solution, aleatoire);
     return {
       taille: TAILLE,
       solution: solution,
-      depart: choisirCasesDepart(solution, aleatoire)
+      depart: depart,
+      signes: choisirSignes(solution, aleatoire)
     };
   }
 
@@ -127,6 +165,10 @@ var Grille = (function () {
     VIDE: VIDE,
     SOLEIL: SOLEIL,
     LUNE: LUNE,
+    EGAL: EGAL,
+    OPPOSE: OPPOSE,
+    DROITE: DROITE,
+    BAS: BAS,
     creerPartieDuJour: creerPartieDuJour
   };
 })();

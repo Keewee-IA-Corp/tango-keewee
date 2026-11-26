@@ -37,6 +37,39 @@
     return "vide";
   }
 
+  /*
+   * Crée le petit signe « = » ou « × » posé à cheval sur la bordure entre
+   * une case et sa voisine (à droite ou en dessous). Purement visuel :
+   * il est décrit dans l'aria-label des cases et ne capte pas les clics.
+   */
+  function creerSigne(signe) {
+    var el = document.createElement("span");
+    el.className = "signe signe--" + signe.direction;
+    el.setAttribute("aria-hidden", "true");
+    el.textContent = signe.type === Grille.EGAL ? "=" : "×";
+    return el;
+  }
+
+  function texteSigne(signe) {
+    return signe.type === Grille.EGAL ? "signe égal" : "signe opposé";
+  }
+
+  /* Ajoute un signe à la grille déjà affichée, et le décrit dans l'aria-label des deux cases. */
+  function afficherSigne(conteneur, signe) {
+    var l2 = signe.direction === Grille.BAS ? signe.ligne + 1 : signe.ligne;
+    var c2 = signe.direction === Grille.DROITE ? signe.colonne + 1 : signe.colonne;
+    var caseA = conteneur.querySelector('[data-ligne="' + signe.ligne + '"][data-colonne="' + signe.colonne + '"]');
+    var caseB = conteneur.querySelector('[data-ligne="' + l2 + '"][data-colonne="' + c2 + '"]');
+    if (!caseA || !caseB) return;
+
+    caseA.appendChild(creerSigne(signe));
+
+    var versB = signe.direction === Grille.DROITE ? "la case à droite" : "la case en dessous";
+    var versA = signe.direction === Grille.DROITE ? "la case à gauche" : "la case au-dessus";
+    caseA.setAttribute("aria-label", caseA.getAttribute("aria-label") + ", " + texteSigne(signe) + " avec " + versB);
+    caseB.setAttribute("aria-label", caseB.getAttribute("aria-label") + ", " + texteSigne(signe) + " avec " + versA);
+  }
+
   function afficherGrille(conteneur, partie) {
     conteneur.textContent = "";
     for (var l = 0; l < partie.taille; l++) {
@@ -62,6 +95,11 @@
         ligne.appendChild(caseEl);
       }
       conteneur.appendChild(ligne);
+    }
+
+    var signes = partie.signes || [];
+    for (var s = 0; s < signes.length; s++) {
+      afficherSigne(conteneur, signes[s]);
     }
   }
 

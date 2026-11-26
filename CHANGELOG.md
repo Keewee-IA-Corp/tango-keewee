@@ -1,5 +1,12 @@
 # Changelog
 
+## TKA-20261126-230511-2 — Afficher les signes « = » et « × » entre les cases
+
+- `assets/js/grille.js` : génération de 8 signes entre cases voisines (à droite ou en dessous), cohérents avec la solution du jour : « = » si les deux cases portent le même symbole, « × » sinon. Ils sont renvoyés dans `partie.signes`. Les cases de départ restent identiques à la version précédente.
+- `assets/js/main.js` : affichage de chaque signe à cheval sur la bordure entre les deux cases, et ajout de sa description (« signe égal / opposé avec la case à droite… ») dans l'`aria-label` des deux cases concernées.
+- `assets/css/style.css` : signes petits (pastille de 1rem) en gris foncé (`--couleur-signe`), centrés sur l'écart entre les cases, avec `pointer-events: none` pour ne jamais gêner le clic sur les cases.
+- Mise à jour du `README.md`.
+
 ## TKA-20261126-230511 — Afficher la grille 6×6 avec ses cases de départ
 
 - Création de la structure du projet (`index.html`, `assets/css/style.css`, `assets/js/`, `assets/img/`).
